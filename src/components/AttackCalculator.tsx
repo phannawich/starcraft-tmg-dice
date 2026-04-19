@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactElement } from "react";
 import {
   BarElement,
   CategoryScale,
@@ -88,7 +88,7 @@ function formatNumber(value: number): string {
   });
 }
 
-function FieldError({ error }: { error?: string }): JSX.Element | null {
+function FieldError({ error }: { error?: string }): ReactElement | null {
   if (!error) {
     return null;
   }
@@ -123,7 +123,7 @@ function NumberField({
   disabled,
   labelTitle,
   placeholder = "Ex: 2, 3",
-}: NumberFieldProps): JSX.Element {
+}: NumberFieldProps): ReactElement {
   const isDisabled = Boolean(disabled);
 
   return (
@@ -163,7 +163,7 @@ function NumberField({
   );
 }
 
-export default function AttackCalculator(): JSX.Element {
+export default function AttackCalculator(): ReactElement {
   const [values, setValues] = useState<AttackFormValues>(INITIAL_VALUES);
 
   const validation = useMemo(() => validateAttackForm(values), [values]);
