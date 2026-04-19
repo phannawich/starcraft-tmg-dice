@@ -73,4 +73,13 @@ describe("calculateAttackOutcome", () => {
     expect(toughened.expectedFailedArmourDice).toBeLessThan(baseline.expectedFailedArmourDice);
     expect(toughened.expectedTotalDamage).toBeLessThan(baseline.expectedTotalDamage);
   });
+
+  it("throws on non-finite trial counts", () => {
+    const invalidInput = {
+      ...getValidInput(),
+      modelCount: Number.POSITIVE_INFINITY,
+    };
+
+    expect(() => calculateAttackOutcome(invalidInput)).toThrow(RangeError);
+  });
 });

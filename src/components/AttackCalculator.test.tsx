@@ -5,10 +5,11 @@ import { describe, expect, it, vi } from "vitest";
 import AttackCalculator from "@/components/AttackCalculator";
 
 vi.mock("react-chartjs-2", () => ({
-  Bar: (props: { data: unknown; "data-testid"?: string }) => (
+  Bar: (props: { data: unknown; options?: unknown; "data-testid"?: string }) => (
     <div
       data-testid={props["data-testid"] ?? "chart"}
       data-chart={JSON.stringify(props.data)}
+      data-options={JSON.stringify(props.options)}
     />
   ),
 }));
@@ -33,7 +34,7 @@ describe("AttackCalculator", () => {
     expect(surgeFormulaInput).toHaveAttribute("placeholder", "Ex: d3, d3+1, d6");
 
     const modelInput = screen.getByLabelText(/^model$/i);
-    expect(modelInput).toHaveAttribute("placeholder", "Ex: 2, 3");
+    expect(modelInput).toHaveAttribute("placeholder", "Ex: 2");
 
     expect(screen.getByLabelText(/^hits x$/i)).toBeInTheDocument();
     const hitsYInput = screen.getByLabelText(/^hits y$/i);
@@ -61,6 +62,44 @@ describe("AttackCalculator", () => {
 
     const chartAfter = screen.getByTestId("pmf-chart").getAttribute("data-chart") ?? "";
     expect(chartAfter).not.toEqual(chartBefore);
+  });
+
+  it("preserves shared axis styling when chart titles are added", () => {
+    render(<AttackCalculator />);
+
+    const getChartOptions = (testId: string) => {
+      const chartOptionsRaw = screen.getByTestId(testId).getAttribute("data-options");
+      if (!chartOptionsRaw) {
+        return {};
+      }
+      return JSON.parse(chartOptionsRaw) as {
+        scales?: {
+          x?: { ticks?: { color?: string }; grid?: { color?: string }; title?: { text?: string } };
+          y?: { ticks?: { color?: string; precision?: number }; grid?: { color?: string }; title?: { text?: string } };
+        };
+      };
+    };
+
+    const pmfOptions = getChartOptions("pmf-chart");
+    expect(pmfOptions.scales?.x?.ticks?.color).toBe("rgba(166,178,199,0.92)");
+    expect(pmfOptions.scales?.x?.grid?.color).toBe("rgba(43,54,72,0.58)");
+    expect(pmfOptions.scales?.y?.ticks?.color).toBe("rgba(166,178,199,0.92)");
+    expect(pmfOptions.scales?.y?.ticks?.precision).toBe(0);
+    expect(pmfOptions.scales?.y?.grid?.color).toBe("rgba(43,54,72,0.58)");
+    expect(pmfOptions.scales?.x?.title?.text).toBe("Total Damage");
+    expect(pmfOptions.scales?.y?.title?.text).toBe("Probability (%)");
+
+    const poolOptions = getChartOptions("pool-chart");
+    expect(poolOptions.scales?.y?.ticks?.color).toBe("rgba(166,178,199,0.92)");
+    expect(poolOptions.scales?.y?.ticks?.precision).toBe(0);
+    expect(poolOptions.scales?.y?.grid?.color).toBe("rgba(43,54,72,0.58)");
+    expect(poolOptions.scales?.y?.title?.text).toBe("Expected Dice");
+
+    const outcomeOptions = getChartOptions("outcome-chart");
+    expect(outcomeOptions.scales?.y?.ticks?.color).toBe("rgba(166,178,199,0.92)");
+    expect(outcomeOptions.scales?.y?.ticks?.precision).toBe(0);
+    expect(outcomeOptions.scales?.y?.grid?.color).toBe("rgba(43,54,72,0.58)");
+    expect(outcomeOptions.scales?.y?.title?.text).toBe("Expected Dice");
   });
 
   it("shows validation error for invalid threshold", async () => {

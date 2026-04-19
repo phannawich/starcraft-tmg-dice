@@ -6,6 +6,13 @@ function successProbability(target: number): number {
 }
 
 function buildBinomialDistribution(trials: number, successProb: number): DistributionEntry[] {
+  if (!Number.isFinite(trials) || !Number.isInteger(trials) || trials < 0 || trials > 1000) {
+    throw new RangeError(`Invalid binomial trials: ${trials}. Expected integer between 0 and 1000.`);
+  }
+  if (!Number.isFinite(successProb) || successProb < 0 || successProb > 1) {
+    throw new RangeError(`Invalid binomial success probability: ${successProb}. Expected value between 0 and 1.`);
+  }
+
   let current = [1];
 
   for (let t = 0; t < trials; t += 1) {

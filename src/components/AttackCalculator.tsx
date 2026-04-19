@@ -592,6 +592,7 @@ export default function AttackCalculator(): ReactElement {
                     scales: {
                       ...CHART_OPTIONS.scales,
                       y: {
+                        ...CHART_OPTIONS.scales?.y,
                         beginAtZero: true,
                         title: {
                           display: true,
@@ -600,6 +601,7 @@ export default function AttackCalculator(): ReactElement {
                         },
                       },
                       x: {
+                        ...CHART_OPTIONS.scales?.x,
                         title: {
                           display: true,
                           text: "Total Damage",
@@ -625,6 +627,7 @@ export default function AttackCalculator(): ReactElement {
                     scales: {
                       ...CHART_OPTIONS.scales,
                       y: {
+                        ...CHART_OPTIONS.scales?.y,
                         beginAtZero: true,
                         title: {
                           display: true,
@@ -651,6 +654,7 @@ export default function AttackCalculator(): ReactElement {
                     scales: {
                       ...CHART_OPTIONS.scales,
                       y: {
+                        ...CHART_OPTIONS.scales?.y,
                         beginAtZero: true,
                         title: {
                           display: true,
