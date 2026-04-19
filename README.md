@@ -1,8 +1,9 @@
 # StarCraft TMG Visual Dice Calculator
 
-Interactive web calculator for **StarCraft Tabletop Miniatures Game (TMG)** attack resolution.
+Interactive web calculator for **StarCraft Tabletop Miniatures Game (TMG)**.
 
-It computes exact probability distributions (no Monte Carlo simulation) for one attacker profile versus one target profile.
+To use this tool, please visit https://phannawich.github.io/starcraft-tmg-dice/
+
 
 ## Highlights
 
@@ -59,8 +60,6 @@ pnpm build
 
 Dev server: `http://localhost:4321`
 
-To use this tool, please visit `https://phannawich.github.io/starcraft-tmg-dice/`.
-
 ## Documentation Files
 
 - `design.md`: current dark-mode design decisions and UI token notes.
@@ -71,7 +70,10 @@ To use this tool, please visit `https://phannawich.github.io/starcraft-tmg-dice/
 
 This project is developed with AI assistance for implementation, design iteration, and documentation.
 
+## Inspiration
+
+This project was conceptually inspired by [toadchild/40kdice](https://github.com/toadchild/40kdice), but all code in this repository was implemented independently for this calculator.
+
 ## Disclaimer
 
 - Not affiliated with Blizzard Entertainment or Archon Studio.
-- Bug reports are welcome on GitHub.
