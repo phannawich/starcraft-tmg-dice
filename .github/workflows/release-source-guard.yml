@@ -1,0 +1,19 @@
+name: Release Source Guard
+
+on:
+  pull_request_target:
+    branches:
+      - release
+
+jobs:
+  release-source-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR source branch
+        run: |
+          echo "Base branch: ${{ github.base_ref }}"
+          echo "Head branch: ${{ github.head_ref }}"
+          if [ "${{ github.head_ref }}" != "dev" ]; then
+            echo "::error::Only pull requests from 'dev' to 'release' are allowed."
+            exit 1
+          fi
