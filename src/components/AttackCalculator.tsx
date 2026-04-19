@@ -137,6 +137,7 @@ function NumberField({
       <input
         inputMode="numeric"
         type="number"
+        step={1}
         min={min}
         max={max}
         value={value}
