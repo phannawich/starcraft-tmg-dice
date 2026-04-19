@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.astro/
+.DS_Store
+.env
+.env.*
+!.env.example
+coverage/
+
+# local planning/scratch files
+keyword.md
+plan.md
