@@ -12,6 +12,14 @@ const { title = "StarCraft TMG Dice Calculator" } = Astro.props;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PZQM0SN7RK"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      gtag("js", new Date());
+      gtag("config", "G-PZQM0SN7RK");
+    </script>
     <style is:global>
       :root {
         --bg-app: #0f1218;
