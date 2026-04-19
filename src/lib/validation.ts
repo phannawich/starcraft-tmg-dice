@@ -28,7 +28,7 @@ export interface ValidationResult {
 
 function parseIntField(value: string, fieldName: string, errors: Record<string, string>): number {
   const parsed = Number(value);
-  if (!Number.isFinite(parsed) || !Number.isSafeInteger(parsed) || !Number.isInteger(parsed)) {
+  if (!Number.isSafeInteger(parsed)) {
     errors[fieldName] = "Must be a finite, safe integer.";
     return 0;
   }
