@@ -1,0 +1,165 @@
+---
+interface Props {
+  title?: string;
+}
+
+const { title = "StarCraft TMG Dice Calculator" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <style is:global>
+      :root {
+        --bg-app: #0f1218;
+        --bg-elev-1: #151a22;
+        --bg-elev-2: #1b2230;
+        --bg-input: #101620;
+        --bg-input-disabled: #0d121a;
+        --text-primary: #e7ecf5;
+        --text-secondary: #a6b2c7;
+        --text-disabled: #7f8da4;
+        --accent: #5bb4ff;
+        --accent-2: #39c49a;
+        --line: #2b3648;
+        --line-disabled: #4a5972;
+        --danger: #ff6b6b;
+        --focus: #7fc4ff;
+        --shadow-1: rgba(2, 8, 20, 0.52);
+
+        --bg-0: var(--bg-app);
+        --bg-1: #121722;
+        --ink: var(--text-primary);
+        --ink-soft: var(--text-secondary);
+        --surface: var(--bg-elev-1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(1050px 620px at 100% -10%, rgba(91, 180, 255, 0.15), transparent 56%),
+          radial-gradient(860px 640px at -12% 112%, rgba(57, 196, 154, 0.13), transparent 52%),
+          linear-gradient(180deg, var(--bg-1) 0%, var(--bg-0) 58%, #0c1015 100%);
+        min-height: 100vh;
+      }
+
+      main {
+        width: min(1120px, 100% - 2rem);
+        margin: 0 auto;
+        padding: clamp(1.25rem, 1.6vw, 2rem) 0 2.5rem;
+      }
+
+      .panel {
+        background: linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--surface) 92%, #1f2a3a 8%) 0%,
+          color-mix(in srgb, var(--surface) 94%, #141b25 6%) 100%
+        );
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        box-shadow: 0 14px 28px -22px var(--shadow-1);
+      }
+
+      .mono {
+        font-family: "IBM Plex Mono", "SFMono-Regular", "Consolas", monospace;
+      }
+
+      .surge-formula-input::placeholder {
+        color: color-mix(in srgb, var(--ink-soft) 86%, #0e141d 14%);
+        opacity: 1;
+      }
+
+      .field-input::placeholder {
+        color: color-mix(in srgb, var(--ink-soft) 86%, #0e141d 14%);
+        opacity: 1;
+      }
+
+      input[type="checkbox"] {
+        accent-color: var(--accent);
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration-thickness: 1px;
+        text-underline-offset: 2px;
+      }
+
+      a:hover {
+        color: color-mix(in srgb, var(--accent) 80%, #ffffff 20%);
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--focus);
+        outline-offset: 2px;
+      }
+
+      .attack-primary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.75rem;
+      }
+
+      .defend-primary-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+      }
+
+      @media (max-width: 1120px) {
+        .attack-primary-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 720px) {
+        .attack-primary-grid,
+        .defend-primary-grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+
+      @media (max-width: 720px) {
+        main {
+          width: min(1120px, 100% - 1rem);
+        }
+      }
+
+      .site-footer {
+        margin-top: clamp(1.5rem, 2.6vw, 2.5rem);
+        padding-top: 1rem;
+        border-top: 1px solid color-mix(in srgb, var(--line) 88%, #06090d 12%);
+        color: color-mix(in srgb, var(--ink-soft) 94%, #0a0f16 6%);
+        font-size: 0.75rem;
+        line-height: 1.2;
+      }
+
+      .site-footer p {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <slot />
+      <footer class="site-footer">
+        <p>StarCraft and related names, logos, and trademarks belong to their respective owners. This project is not affiliated with, endorsed by, or sponsored by Blizzard Entertainment or Archon Studio. </p>
+        <p>This tool was created by Phannawich (Boss) Jadpotwanich</p>
+        <p>Bug reports are welcome on <a href="https://github.com/phannawich/starcraft-tmg-dice">GitHub.</a></p>
+      </footer>
+    </main>
+  </body>
+</html>

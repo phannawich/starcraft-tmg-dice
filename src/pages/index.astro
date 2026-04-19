@@ -1,0 +1,19 @@
+---
+import MainLayout from "@/layouts/MainLayout.astro";
+import AttackCalculator from "@/components/AttackCalculator";
+---
+
+<MainLayout>
+  <header style="margin-bottom: 1.2rem;">
+    <h1
+      style="margin: 0; font-size: clamp(1.65rem, 3.8vw, 2.75rem); line-height: 1.04; color: var(--ink); letter-spacing: 0.012em;"
+    >
+      StarCraft TMG Visual Dice Calculator
+    </h1>
+    <p style="margin: 0.5rem 0 0; max-width: 56ch; color: var(--ink-soft);">
+      Statistical analysis tool for StarCraft TMG
+    </p>
+  </header>
+
+  <AttackCalculator client:load />
+</MainLayout>
