@@ -144,7 +144,7 @@ function NumberField({
         disabled={disabled}
         placeholder={placeholder}
         onChange={(event) => onChange(name, event.currentTarget.value)}
-        className="field-input"
+        className={`field-input${isDisabled ? " is-input-disabled" : ""}`}
         style={{
           width: "100%",
           padding: "0.58rem 0.65rem",
@@ -402,7 +402,7 @@ export default function AttackCalculator(): ReactElement {
                 disabled={surgeFormulaDisabled}
                 placeholder="Ex: d3, d3+1, d6"
                 onChange={(event) => updateValue("surgeFormula", event.currentTarget.value)}
-                className="mono surge-formula-input"
+                className={`mono surge-formula-input${surgeFormulaDisabled ? " is-input-disabled" : ""}`}
                 style={{
                   width: "100%",
                   padding: "0.58rem 0.65rem",

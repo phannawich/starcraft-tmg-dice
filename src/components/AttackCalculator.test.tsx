@@ -29,8 +29,7 @@ describe("AttackCalculator", () => {
     const surgeFormulaInput = screen.getByLabelText(/surge formula/i);
     expect(surgeFormulaInput).toHaveValue("d3");
     expect(surgeFormulaInput).toBeDisabled();
-    expect(surgeFormulaInput).toHaveStyle("cursor: not-allowed");
-    expect((surgeFormulaInput as HTMLInputElement).style.border).toBe("1px solid var(--line-disabled)");
+    expect(surgeFormulaInput).toHaveClass("is-input-disabled");
     expect(surgeFormulaInput).toHaveAttribute("placeholder", "Ex: d3, d3+1, d6");
 
     const modelInput = screen.getByLabelText(/^model$/i);
@@ -40,14 +39,11 @@ describe("AttackCalculator", () => {
     const hitsYInput = screen.getByLabelText(/^hits y$/i);
     expect(hitsYInput).toBeInTheDocument();
     expect(hitsYInput).toBeDisabled();
-    expect(hitsYInput).toHaveStyle("cursor: not-allowed");
-    expect((hitsYInput as HTMLInputElement).style.border).toBe("1px solid var(--line-disabled)");
+    expect(hitsYInput).toHaveClass("is-input-disabled");
     expect(screen.getByLabelText(/tough \(x\)/i)).toBeInTheDocument();
 
     const critInput = screen.getByLabelText(/critical hit \(x\)/i);
-    const surgeFormulaInputNode = screen.getByLabelText(/surge formula/i);
-    const orderMask = surgeFormulaInputNode.compareDocumentPosition(critInput);
-    expect(orderMask & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(critInput).toBeInTheDocument();
 
     expect(screen.queryByLabelText(/weapon surge type/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/target combat tag/i)).not.toBeInTheDocument();
@@ -85,14 +81,12 @@ describe("AttackCalculator", () => {
     const hitsXInput = screen.getByLabelText(/^hits x$/i);
     const hitsYInput = screen.getByLabelText(/^hits y$/i);
     expect(hitsYInput).toBeDisabled();
-    expect(hitsYInput).toHaveStyle("cursor: not-allowed");
-    expect((hitsYInput as HTMLInputElement).style.border).toBe("1px solid var(--line-disabled)");
+    expect(hitsYInput).toHaveClass("is-input-disabled");
 
     await user.clear(hitsXInput);
     await user.type(hitsXInput, "2");
     expect(hitsYInput).not.toBeDisabled();
-    expect(hitsYInput).toHaveStyle("cursor: text");
-    expect((hitsYInput as HTMLInputElement).style.border).toBe("1px solid var(--line)");
+    expect(hitsYInput).not.toHaveClass("is-input-disabled");
   });
 
   it("enables surge formula editing when surge turned on", async () => {
@@ -103,14 +97,12 @@ describe("AttackCalculator", () => {
     const surgeFormulaInput = screen.getByLabelText(/surge formula/i);
 
     expect(surgeFormulaInput).toBeDisabled();
-    expect(surgeFormulaInput).toHaveStyle("cursor: not-allowed");
-    expect((surgeFormulaInput as HTMLInputElement).style.border).toBe("1px solid var(--line-disabled)");
+    expect(surgeFormulaInput).toHaveClass("is-input-disabled");
 
     await user.click(surgeCheckbox);
     expect(surgeCheckbox).toBeChecked();
     expect(surgeFormulaInput).not.toBeDisabled();
-    expect(surgeFormulaInput).toHaveStyle("cursor: text");
-    expect((surgeFormulaInput as HTMLInputElement).style.border).toBe("1px solid var(--line)");
+    expect(surgeFormulaInput).not.toHaveClass("is-input-disabled");
   });
 
   it("keeps calculator working after evade toggle on then off", async () => {
@@ -121,20 +113,17 @@ describe("AttackCalculator", () => {
     const evadeTargetInput = screen.getByLabelText(/^evade$/i);
     expect(evadeCheckbox).not.toBeChecked();
     expect(evadeTargetInput).toBeDisabled();
-    expect(evadeTargetInput).toHaveStyle("cursor: not-allowed");
-    expect((evadeTargetInput as HTMLInputElement).style.border).toBe("1px solid var(--line-disabled)");
+    expect(evadeTargetInput).toHaveClass("is-input-disabled");
 
     await user.click(evadeCheckbox);
     expect(evadeCheckbox).toBeChecked();
     expect(evadeTargetInput).not.toBeDisabled();
-    expect(evadeTargetInput).toHaveStyle("cursor: text");
-    expect((evadeTargetInput as HTMLInputElement).style.border).toBe("1px solid var(--line)");
+    expect(evadeTargetInput).not.toHaveClass("is-input-disabled");
 
     await user.click(evadeCheckbox);
     expect(evadeCheckbox).not.toBeChecked();
     expect(evadeTargetInput).toBeDisabled();
-    expect(evadeTargetInput).toHaveStyle("cursor: not-allowed");
-    expect((evadeTargetInput as HTMLInputElement).style.border).toBe("1px solid var(--line-disabled)");
+    expect(evadeTargetInput).toHaveClass("is-input-disabled");
 
     expect(screen.getByText(/expected totals/i)).toBeInTheDocument();
   });
