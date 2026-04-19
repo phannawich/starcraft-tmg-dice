@@ -142,11 +142,19 @@ export function calculateAttackOutcome(input: AttackInput): AttackOutcome {
   const pmfMap = convolvePmfMaps(regularDamagePmfMap, hitsDamagePmfMap);
   let pmf = mapToSortedDistribution(pmfMap);
   const totalProb = pmf.reduce((acc, item) => acc + item.probability, 0);
+  let normalizationFactor = 1;
   if (Math.abs(totalProb - 1) > 1e-10 && totalProb > 0) {
+    normalizationFactor = 1 / totalProb;
     pmf = pmf.map((item) => ({
       value: item.value,
-      probability: item.probability / totalProb,
+      probability: item.probability * normalizationFactor,
     }));
+
+    expectedHitSuccesses *= normalizationFactor;
+    expectedBypassDice *= normalizationFactor;
+    expectedFailedArmourDice *= normalizationFactor;
+    expectedDamagePoolDice *= normalizationFactor;
+    expectedHealthInflictedDice *= normalizationFactor;
   }
 
   const expectedTotalDamage = pmf.reduce(

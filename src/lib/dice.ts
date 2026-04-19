@@ -10,6 +10,9 @@ export interface ParsedDiceExpression {
 
 const DICE_REGEX = /^([+-]?\d*)d(\d+)([+-]\d+)?$/i;
 const INT_REGEX = /^[+-]?\d+$/;
+const MAX_DICE_COUNT = 60;
+const MAX_DICE_SIDES = 100;
+const MAX_DICE_PRODUCT = 600;
 
 export function parseDiceExpression(expression: string): ParsedDiceExpression {
   const normalized = expression.replace(/\s+/g, "").toLowerCase();
@@ -45,6 +48,20 @@ export function parseDiceExpression(expression: string): ParsedDiceExpression {
 
   if (!Number.isInteger(sides) || sides <= 1) {
     throw new Error("Dice sides must be an integer greater than 1.");
+  }
+
+  if (parsedCount > MAX_DICE_COUNT) {
+    throw new Error(`Dice count must be ${MAX_DICE_COUNT} or less.`);
+  }
+
+  if (sides > MAX_DICE_SIDES) {
+    throw new Error(`Dice sides must be ${MAX_DICE_SIDES} or less.`);
+  }
+
+  if (parsedCount * sides > MAX_DICE_PRODUCT) {
+    throw new Error(
+      `Dice expression is too large. diceCount × diceSides must be ${MAX_DICE_PRODUCT} or less.`,
+    );
   }
 
   return {

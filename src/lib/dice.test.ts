@@ -32,6 +32,12 @@ describe("parseDiceExpression", () => {
     expect(() => parseDiceExpression("foo")).toThrowError();
     expect(() => parseDiceExpression("0d6")).toThrowError();
   });
+
+  it("rejects oversized dice count/sides/complexity", () => {
+    expect(() => parseDiceExpression("61d6")).toThrowError(/count/i);
+    expect(() => parseDiceExpression("1d101")).toThrowError(/sides/i);
+    expect(() => parseDiceExpression("20d40")).toThrowError(/too large/i);
+  });
 });
 
 describe("evaluateDiceDistribution", () => {

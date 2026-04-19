@@ -1,6 +1,9 @@
 import type { AttackInput } from "@/lib/types";
 import { parseDiceExpression } from "@/lib/dice";
 
+const MAX_ATTACK_DICE = 60;
+const MAX_TOTAL_ARMOUR_INPUT_DICE = 60;
+
 export interface AttackFormValues {
   modelCount: string;
   rateOfAttack: string;
@@ -113,9 +116,19 @@ export function validateAttackForm(values: AttackFormValues): ValidationResult {
     !errors.modelCount &&
     !errors.rateOfAttack &&
     Number.isFinite(product) &&
-    product > 60
+    product > MAX_ATTACK_DICE
   ) {
-    errors.rateOfAttack = "modelCount × RoA must be 60 or less.";
+    errors.rateOfAttack = `modelCount × RoA must be ${MAX_ATTACK_DICE} or less.`;
+  }
+
+  if (
+    !errors.modelCount &&
+    !errors.rateOfAttack &&
+    !errors.hitsX &&
+    Number.isFinite(product) &&
+    product + hitsX > MAX_TOTAL_ARMOUR_INPUT_DICE
+  ) {
+    errors.hitsX = `modelCount × RoA + HITS X must be ${MAX_TOTAL_ARMOUR_INPUT_DICE} or less.`;
   }
 
   const surgeFormula = values.surgeFormula.trim();

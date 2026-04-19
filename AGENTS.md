@@ -93,7 +93,12 @@ Current constraints include:
 - `hitsY > 0` when `hitsX > 0`.
 - Evade target validation only enforced when Evade is enabled.
 - Attack dice guardrail: `modelCount * rateOfAttack <= 60`.
+- Combined armour-input guardrail: `modelCount * rateOfAttack + hitsX <= 60`.
 - Surge formula syntax validated only when Surge is enabled.
+- Surge dice complexity guardrails:
+  - dice count `<= 60`
+  - dice sides `<= 100`
+  - `diceCount * diceSides <= 600`
 
 ## 6) Current UI/UX Behavior
 

@@ -84,4 +84,28 @@ describe("validateAttackForm surge behavior", () => {
     expect(validation.ok).toBe(true);
     expect(validation.errors.hitsY).toBeUndefined();
   });
+
+  it("rejects oversized combined armour input dice", () => {
+    const validation = validateAttackForm({
+      ...BASE_FORM,
+      modelCount: "5",
+      rateOfAttack: "10",
+      hitsX: "11",
+      hitsY: "2",
+    });
+
+    expect(validation.ok).toBe(false);
+    expect(validation.errors.hitsX).toMatch(/modelCount × RoA \+ HITS X/i);
+  });
+
+  it("rejects oversized surge expression complexity", () => {
+    const validation = validateAttackForm({
+      ...BASE_FORM,
+      surgeEnabled: true,
+      surgeFormula: "20d40",
+    });
+
+    expect(validation.ok).toBe(false);
+    expect(validation.errors.surgeFormula).toMatch(/too large/i);
+  });
 });
