@@ -59,6 +59,8 @@ pnpm build
 
 Dev server: `http://localhost:4321`
 
+To use this tool, please visit `https://phannawich.github.io/starcraft-tmg-dice/`.
+
 ## Documentation Files
 
 - `design.md`: current dark-mode design decisions and UI token notes.
