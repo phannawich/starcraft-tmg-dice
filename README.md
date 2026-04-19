@@ -16,9 +16,13 @@ It computes exact probability distributions (no Monte Carlo simulation) for one 
   - Optional Evade toggle and threshold.
 - Three live charts:
   - PMF by total damage.
-  - Pool dice expectations (dynamic Evade bar when Evade is enabled).
+  - Pool dice expectations (`Attack Pool -> Armour Pool -> Damage Pool -> Health Inflict`).
   - Dice outcome breakdown (hides `Evaded Dice` when Evade is disabled).
 - Dark-mode UI with stronger disabled input affordances.
+
+Combat flow used by the calculator:
+
+`Attack Pool -> Armour Pool -> Damage Pool -> (optional Evade roll) -> Health Inflict`
 
 ## Tech Stack
 

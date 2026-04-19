@@ -54,8 +54,9 @@ High-level flow:
 1. Roll to Hit.
 2. Apply Surge + Critical bypass.
 3. Resolve Armour failures (with Tough mitigation).
-4. Optionally resolve Evade.
-5. Convert surviving dice to total damage.
+4. Build Damage Pool (bypass + failed Armour dice).
+5. Optionally resolve Evade against Damage Pool.
+6. Convert surviving dice to total damage (Health Inflict).
 
 Inputs currently represented in UI:
 
@@ -78,7 +79,8 @@ Outputs:
   - expected hit successes
   - expected bypass dice
   - expected failed armour dice
-  - expected post-evade dice
+  - expected damage pool dice
+  - expected health-inflicting dice
 
 ## 5) Validation Rules (Important)
 
@@ -100,7 +102,7 @@ Current constraints include:
   - PMF by total damage
   - Pool dice expectations
   - Dice outcome breakdown
-- Pool chart dynamically adds `Evade Pool` only when Evade is enabled.
+- Pool chart uses fixed stage labels: `Attack Pool`, `Armour Pool`, `Damage Pool`, `Health Inflict`.
 - Outcome chart hides `Evaded Dice` when Evade is disabled.
 - Disabled inputs use a stronger “locked” treatment:
   - muted text

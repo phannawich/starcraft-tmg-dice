@@ -67,7 +67,8 @@ export function calculateAttackOutcome(input: AttackInput): AttackOutcome {
   let expectedHitSuccesses = 0;
   let expectedBypassDice = 0;
   let expectedFailedArmourDice = 0;
-  let expectedPostEvadeDice = 0;
+  let expectedDamagePoolDice = 0;
+  let expectedHealthInflictedDice = 0;
 
   for (const hit of hitDist) {
     expectedHitSuccesses += hit.value * hit.probability;
@@ -88,16 +89,17 @@ export function calculateAttackOutcome(input: AttackInput): AttackOutcome {
         const adjustedArmourFail = applyTough(armourFail.value, input.toughX);
         expectedFailedArmourDice += adjustedArmourFail * jointArmourProb;
 
-        const preEvadeDamageDice = bypass + adjustedArmourFail;
-        const evadeKey = cacheKey(preEvadeDamageDice, evadeFailProb);
+        const damagePoolDice = bypass + adjustedArmourFail;
+        expectedDamagePoolDice += damagePoolDice * jointArmourProb;
+        const evadeKey = cacheKey(damagePoolDice, evadeFailProb);
         const postEvadeDist =
           binomialCache.get(evadeKey) ??
-          buildBinomialDistribution(preEvadeDamageDice, evadeFailProb);
+          buildBinomialDistribution(damagePoolDice, evadeFailProb);
         binomialCache.set(evadeKey, postEvadeDist);
 
         for (const postEvade of postEvadeDist) {
           const finalProb = jointArmourProb * postEvade.probability;
-          expectedPostEvadeDice += postEvade.value * finalProb;
+          expectedHealthInflictedDice += postEvade.value * finalProb;
 
           const totalDamage = postEvade.value * input.damagePerDie;
           addProbability(regularDamagePmfMap, totalDamage, finalProb);
@@ -117,6 +119,7 @@ export function calculateAttackOutcome(input: AttackInput): AttackOutcome {
       const armourProb = armourFail.probability;
       const adjustedArmourFail = applyTough(armourFail.value, input.toughX);
       expectedFailedArmourDice += adjustedArmourFail * armourProb;
+      expectedDamagePoolDice += adjustedArmourFail * armourProb;
 
       const evadeKey = cacheKey(adjustedArmourFail, evadeFailProb);
       const postEvadeDist =
@@ -126,7 +129,7 @@ export function calculateAttackOutcome(input: AttackInput): AttackOutcome {
 
       for (const postEvade of postEvadeDist) {
         const finalProb = armourProb * postEvade.probability;
-        expectedPostEvadeDice += postEvade.value * finalProb;
+        expectedHealthInflictedDice += postEvade.value * finalProb;
 
         const totalDamage = postEvade.value * input.hitsY;
         addProbability(hitsDamagePmfMap, totalDamage, finalProb);
@@ -157,6 +160,7 @@ export function calculateAttackOutcome(input: AttackInput): AttackOutcome {
     expectedHitSuccesses,
     expectedBypassDice,
     expectedFailedArmourDice,
-    expectedPostEvadeDice,
+    expectedDamagePoolDice,
+    expectedHealthInflictedDice,
   };
 }

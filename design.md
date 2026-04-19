@@ -48,6 +48,12 @@ Current UI direction is a **dark-mode tactical workspace** with restrained visua
 - Dark-aware axis/grid/tick colors.
 - Dark tooltip palette.
 - Distinct dataset colors for quick category recognition.
+- Pool chart stages are fixed to:
+  - `Attack Pool`
+  - `Armour Pool`
+  - `Damage Pool`
+  - `Health Inflict`
+- Evade is treated as a roll against Damage Pool (not a standalone pool stage).
 
 ## Accessibility/Usability Targets
 

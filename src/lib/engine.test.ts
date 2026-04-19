@@ -49,13 +49,14 @@ describe("calculateAttackOutcome", () => {
     expect(result.expectedBypassDice).toBeGreaterThan(0);
   });
 
-  it("evade toggle impacts expected post-evade dice", () => {
+  it("evade toggle impacts health-inflicting dice but not damage-pool dice", () => {
     const withEvade = calculateAttackOutcome(getValidInput({ evadeEnabled: true, evadeTarget: "6" }));
     const withoutEvade = calculateAttackOutcome(
       getValidInput({ evadeEnabled: false, evadeTarget: "6" }),
     );
 
-    expect(withoutEvade.expectedPostEvadeDice).toBeGreaterThan(withEvade.expectedPostEvadeDice);
+    expect(withoutEvade.expectedDamagePoolDice).toBeCloseTo(withEvade.expectedDamagePoolDice, 8);
+    expect(withoutEvade.expectedHealthInflictedDice).toBeGreaterThan(withEvade.expectedHealthInflictedDice);
   });
 
   it("hits x (y) adds automatic-hit damage path", () => {

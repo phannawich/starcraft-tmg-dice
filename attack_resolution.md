@@ -13,7 +13,12 @@ This document summarizes the attack-flow model used by the calculator.
    Armour failures move to Damage Pool.
 
 3. **Damage Pool**  
-   Surviving dice deal damage (`dice * Damage`), optionally after Evade.
+   Combine bypassed dice and post-Tough armour failures.
+   This pool is rolled against Evade when Evade is enabled.
+
+4. **Health Inflict**
+   Dice surviving Evade inflict health/damage.
+   Total output is computed from per-die damage characteristics.
 
 ## Step-by-Step Sequence
 
@@ -32,12 +37,19 @@ This document summarizes the attack-flow model used by the calculator.
    - Failed armour dice remain threatening.
    - `TOUGH (X)` converts up to `X` armour failures into successes.
 
-4. **Evade Resolution (Optional)**
-   - Performed only when Evade is enabled in the calculator.
-   - Defender rolls Evade threshold and removes successful evade dice.
+4. **Build Damage Pool**
+   - Combine:
+     - bypass dice from Surge + `CRITICAL HIT (X)`
+     - failed Armour dice remaining after `TOUGH (X)`
 
-5. **Damage Calculation**
-   - Remaining damage dice are multiplied by per-die damage.
+5. **Evade Resolution (Optional)**
+   - Performed only when Evade is enabled in the calculator.
+   - Defender rolls Evade threshold against Damage Pool dice and removes successful evades.
+
+6. **Health Inflict Calculation**
+   - Remaining Damage Pool dice inflict health.
+   - Base attack-path dice use `Damage` per die.
+   - `HITS X (Y)` attack-path dice use `Y` per die.
    - PMF and expected values are computed exactly.
 
 ## Special Inputs Modeled

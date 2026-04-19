@@ -139,7 +139,7 @@ describe("AttackCalculator", () => {
     expect(screen.getByText(/expected totals/i)).toBeInTheDocument();
   });
 
-  it("adds evade pool pillar to pool chart when evade is enabled", async () => {
+  it("keeps pool chart stages fixed and does not show an evade pool stage", async () => {
     const user = userEvent.setup();
     render(<AttackCalculator />);
 
@@ -152,12 +152,22 @@ describe("AttackCalculator", () => {
       return parsed.labels ?? [];
     };
 
-    expect(getPoolLabels()).toEqual(["Attack Pool", "Armour Pool", "Damage Pool"]);
+    expect(getPoolLabels()).toEqual([
+      "Attack Pool",
+      "Armour Pool",
+      "Damage Pool",
+      "Health Inflict",
+    ]);
 
     const evadeCheckbox = screen.getByRole("checkbox", { name: /enable evade/i });
     await user.click(evadeCheckbox);
 
-    expect(getPoolLabels()).toEqual(["Attack Pool", "Armour Pool", "Evade Pool", "Damage Pool"]);
+    expect(getPoolLabels()).toEqual([
+      "Attack Pool",
+      "Armour Pool",
+      "Damage Pool",
+      "Health Inflict",
+    ]);
   });
 
   it("updates outcome chart evaded dice when evade is enabled", async () => {
@@ -189,5 +199,6 @@ describe("AttackCalculator", () => {
     const after = getOutcomeData();
     expect(after.labels).toEqual(["Hit Dice", "Safe Dice", "Evaded Dice", "Damage Dice"]);
     expect(after.data[2]).toBeGreaterThan(0);
+    expect(after.data[3]).toBeLessThan(before.data[2]);
   });
 });

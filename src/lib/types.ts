@@ -25,5 +25,6 @@ export interface AttackOutcome {
   expectedHitSuccesses: number;
   expectedBypassDice: number;
   expectedFailedArmourDice: number;
-  expectedPostEvadeDice: number;
+  expectedDamagePoolDice: number;
+  expectedHealthInflictedDice: number;
 }

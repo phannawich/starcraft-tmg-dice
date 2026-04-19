@@ -182,14 +182,14 @@ export default function AttackCalculator(): JSX.Element {
       0,
       outcome.expectedHitSuccesses - outcome.expectedBypassDice + validation.data.hitsX,
     );
-    const evadePoolDice = outcome.expectedFailedArmourDice;
-    const damagePoolDice = outcome.expectedPostEvadeDice;
+    const damagePoolDice = outcome.expectedDamagePoolDice;
+    const healthInflictDice = outcome.expectedHealthInflictedDice;
 
     return {
       attackPoolDice,
       armourPoolDice,
-      evadePoolDice,
       damagePoolDice,
+      healthInflictDice,
     };
   }, [validation, outcome]);
 
@@ -218,33 +218,19 @@ export default function AttackCalculator(): JSX.Element {
       return null;
     }
 
-    const labels = values.evadeEnabled
-      ? ["Attack Pool", "Armour Pool", "Evade Pool", "Damage Pool"]
-      : ["Attack Pool", "Armour Pool", "Damage Pool"];
-    const data = values.evadeEnabled
-      ? [
-          Number(poolExpectations.attackPoolDice.toFixed(6)),
-          Number(poolExpectations.armourPoolDice.toFixed(6)),
-          Number(poolExpectations.evadePoolDice.toFixed(6)),
-          Number(poolExpectations.damagePoolDice.toFixed(6)),
-        ]
-      : [
-          Number(poolExpectations.attackPoolDice.toFixed(6)),
-          Number(poolExpectations.armourPoolDice.toFixed(6)),
-          Number(poolExpectations.damagePoolDice.toFixed(6)),
-        ];
-    const backgroundColor = values.evadeEnabled
-      ? [
-          "rgba(91,180,255,0.82)",
-          "rgba(57,196,154,0.82)",
-          "rgba(255,183,94,0.82)",
-          "rgba(124,146,232,0.82)",
-        ]
-      : [
-          "rgba(91,180,255,0.82)",
-          "rgba(57,196,154,0.82)",
-          "rgba(124,146,232,0.82)",
-        ];
+    const labels = ["Attack Pool", "Armour Pool", "Damage Pool", "Health Inflict"];
+    const data = [
+      Number(poolExpectations.attackPoolDice.toFixed(6)),
+      Number(poolExpectations.armourPoolDice.toFixed(6)),
+      Number(poolExpectations.damagePoolDice.toFixed(6)),
+      Number(poolExpectations.healthInflictDice.toFixed(6)),
+    ];
+    const backgroundColor = [
+      "rgba(91,180,255,0.82)",
+      "rgba(57,196,154,0.82)",
+      "rgba(255,183,94,0.82)",
+      "rgba(124,146,232,0.82)",
+    ];
 
     return {
       labels,
@@ -257,7 +243,7 @@ export default function AttackCalculator(): JSX.Element {
         },
       ],
     };
-  }, [poolExpectations, values.evadeEnabled]);
+  }, [poolExpectations]);
 
   const outcomeChartData: ChartData<"bar"> | null = useMemo(() => {
     if (!validation.ok || !validation.data || !outcome || !poolExpectations) {
@@ -266,11 +252,11 @@ export default function AttackCalculator(): JSX.Element {
 
     const hitDice = outcome.expectedHitSuccesses + validation.data.hitsX;
     const safeDice = Math.max(0, poolExpectations.armourPoolDice - outcome.expectedFailedArmourDice);
-    const preEvadeDamageDice = outcome.expectedBypassDice + outcome.expectedFailedArmourDice;
+    const preEvadeDamageDice = outcome.expectedDamagePoolDice;
     const evadedDice = validation.data.evadeEnabled
-      ? Math.max(0, preEvadeDamageDice - outcome.expectedPostEvadeDice)
+      ? Math.max(0, preEvadeDamageDice - outcome.expectedHealthInflictedDice)
       : 0;
-    const damageDice = outcome.expectedPostEvadeDice;
+    const healthInflictingDice = outcome.expectedHealthInflictedDice;
     const labels = validation.data.evadeEnabled
       ? ["Hit Dice", "Safe Dice", "Evaded Dice", "Damage Dice"]
       : ["Hit Dice", "Safe Dice", "Damage Dice"];
@@ -279,12 +265,12 @@ export default function AttackCalculator(): JSX.Element {
           Number(hitDice.toFixed(6)),
           Number(safeDice.toFixed(6)),
           Number(evadedDice.toFixed(6)),
-          Number(damageDice.toFixed(6)),
+          Number(healthInflictingDice.toFixed(6)),
         ]
       : [
           Number(hitDice.toFixed(6)),
           Number(safeDice.toFixed(6)),
-          Number(damageDice.toFixed(6)),
+          Number(healthInflictingDice.toFixed(6)),
         ];
     const backgroundColor = validation.data.evadeEnabled
       ? [
@@ -571,7 +557,7 @@ export default function AttackCalculator(): JSX.Element {
                 {formatNumber(outcome.expectedTotalDamage)} damage
               </p>
               <p style={{ margin: 0, color: "var(--ink-soft)" }}>
-                {formatNumber(outcome.expectedPostEvadeDice)} expected damage dice
+                {formatNumber(outcome.expectedHealthInflictedDice)} expected health-inflicting dice
               </p>
             </article>
             <article>
@@ -580,10 +566,8 @@ export default function AttackCalculator(): JSX.Element {
               </h2>
               <p style={{ margin: "0 0 0.2rem" }}>Attack Pool: {formatNumber(poolExpectations.attackPoolDice)}</p>
               <p style={{ margin: "0 0 0.2rem" }}>Armour Pool: {formatNumber(poolExpectations.armourPoolDice)}</p>
-              {values.evadeEnabled && (
-                <p style={{ margin: "0 0 0.2rem" }}>Evade Pool: {formatNumber(poolExpectations.evadePoolDice)}</p>
-              )}
               <p style={{ margin: "0 0 0.2rem" }}>Damage Pool: {formatNumber(poolExpectations.damagePoolDice)}</p>
+              <p style={{ margin: "0 0 0.2rem" }}>Health Inflict: {formatNumber(poolExpectations.healthInflictDice)}</p>
             </article>
           </section>
 
