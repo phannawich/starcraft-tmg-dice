@@ -122,7 +122,7 @@ function NumberField({
   error,
   disabled,
   labelTitle,
-  placeholder = "Ex: 2, 3",
+  placeholder = "Ex: 2",
 }: NumberFieldProps): ReactElement {
   const isDisabled = Boolean(disabled);
 
