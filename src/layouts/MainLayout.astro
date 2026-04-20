@@ -10,7 +10,8 @@ const { title = "StarCraft TMG Dice Calculator" } = Astro.props;
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0c1015" />
     <title>{title}</title>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-PZQM0SN7RK"></script>
@@ -43,6 +44,10 @@ const { title = "StarCraft TMG Dice Calculator" } = Astro.props;
         --ink: var(--text-primary);
         --ink-soft: var(--text-secondary);
         --surface: var(--bg-elev-1);
+        --app-backdrop:
+          radial-gradient(1050px 620px at 100% -10%, rgba(91, 180, 255, 0.15), transparent 56%),
+          radial-gradient(860px 640px at -12% 112%, rgba(57, 196, 154, 0.13), transparent 52%),
+          linear-gradient(180deg, var(--bg-1) 0%, var(--bg-0) 58%, #0c1015 100%);
       }
 
       * {
@@ -53,16 +58,30 @@ const { title = "StarCraft TMG Dice Calculator" } = Astro.props;
       body {
         margin: 0;
         padding: 0;
+        background-color: #0c1015;
+      }
+
+      html {
+        background: var(--app-backdrop);
       }
 
       body {
+        position: relative;
+        isolation: isolate;
         font-family: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
         color: var(--ink);
-        background:
-          radial-gradient(1050px 620px at 100% -10%, rgba(91, 180, 255, 0.15), transparent 56%),
-          radial-gradient(860px 640px at -12% 112%, rgba(57, 196, 154, 0.13), transparent 52%),
-          linear-gradient(180deg, var(--bg-1) 0%, var(--bg-0) 58%, #0c1015 100%);
+        background: transparent;
         min-height: 100vh;
+        min-height: 100dvh;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background: var(--app-backdrop);
       }
 
       main {
