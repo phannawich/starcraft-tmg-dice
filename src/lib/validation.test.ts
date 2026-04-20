@@ -6,6 +6,7 @@ const BASE_FORM = {
   rateOfAttack: "4",
   hitTarget: "3",
   damagePerDie: "2",
+  precisionX: "0",
   surgeEnabled: false,
   surgeFormula: "d3",
   critX: "0",
@@ -13,6 +14,7 @@ const BASE_FORM = {
   hitsY: "2",
   armourTarget: "4",
   toughX: "0",
+  dodgeX: "0",
   evadeEnabled: true,
   evadeTarget: "6",
 };
@@ -51,16 +53,20 @@ describe("validateAttackForm surge behavior", () => {
     expect(validation.errors.surgeFormula).toBeTruthy();
   });
 
-  it("rejects negative tough and hits x values", () => {
+  it("rejects negative tough, hits x, precision, and dodge values", () => {
     const validation = validateAttackForm({
       ...BASE_FORM,
       hitsX: "-1",
       toughX: "-2",
+      precisionX: "-3",
+      dodgeX: "-4",
     });
 
     expect(validation.ok).toBe(false);
     expect(validation.errors.hitsX).toBeTruthy();
     expect(validation.errors.toughX).toBeTruthy();
+    expect(validation.errors.precisionX).toBeTruthy();
+    expect(validation.errors.dodgeX).toBeTruthy();
   });
 
   it("rejects non-positive hits y value", () => {
@@ -95,6 +101,18 @@ describe("validateAttackForm surge behavior", () => {
 
     expect(validation.ok).toBe(true);
     expect(validation.errors.modelCount).toBeUndefined();
+  });
+
+  it("allows zero precision and dodge values", () => {
+    const validation = validateAttackForm({
+      ...BASE_FORM,
+      precisionX: "0",
+      dodgeX: "0",
+    });
+
+    expect(validation.ok).toBe(true);
+    expect(validation.errors.precisionX).toBeUndefined();
+    expect(validation.errors.dodgeX).toBeUndefined();
   });
 
   it("rejects oversized combined armour input dice", () => {

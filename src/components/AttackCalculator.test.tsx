@@ -45,6 +45,8 @@ describe("AttackCalculator", () => {
 
     const critInput = screen.getByLabelText(/critical hit \(x\)/i);
     expect(critInput).toBeInTheDocument();
+    expect(screen.getByLabelText(/precision \(x\)/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/dodge \(x\)/i)).toBeInTheDocument();
 
     expect(screen.queryByLabelText(/weapon surge type/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/target combat tag/i)).not.toBeInTheDocument();
@@ -59,6 +61,23 @@ describe("AttackCalculator", () => {
     const damageInput = screen.getByLabelText(/^damage$/i);
     await user.clear(damageInput);
     await user.type(damageInput, "3");
+
+    const chartAfter = screen.getByTestId("pmf-chart").getAttribute("data-chart") ?? "";
+    expect(chartAfter).not.toEqual(chartBefore);
+  });
+
+  it("updates chart labels/data when precision or dodge changes", async () => {
+    const user = userEvent.setup();
+    render(<AttackCalculator />);
+
+    const chartBefore = screen.getByTestId("pmf-chart").getAttribute("data-chart") ?? "";
+
+    const precisionInput = screen.getByLabelText(/precision \(x\)/i);
+    const dodgeInput = screen.getByLabelText(/dodge \(x\)/i);
+    await user.clear(precisionInput);
+    await user.type(precisionInput, "2");
+    await user.clear(dodgeInput);
+    await user.type(dodgeInput, "1");
 
     const chartAfter = screen.getByTestId("pmf-chart").getAttribute("data-chart") ?? "";
     expect(chartAfter).not.toEqual(chartBefore);

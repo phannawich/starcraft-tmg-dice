@@ -24,6 +24,7 @@ const INITIAL_VALUES: AttackFormValues = {
   rateOfAttack: "4",
   hitTarget: "3",
   damagePerDie: "2",
+  precisionX: "0",
   surgeEnabled: false,
   surgeFormula: "d3",
   critX: "0",
@@ -31,6 +32,7 @@ const INITIAL_VALUES: AttackFormValues = {
   hitsY: "2",
   armourTarget: "4",
   toughX: "0",
+  dodgeX: "0",
   evadeEnabled: false,
   evadeTarget: "6",
 };
@@ -439,6 +441,15 @@ export default function AttackCalculator(): ReactElement {
               labelTitle="CRITICAL HIT (X): move up to X dice from Armour Pool directly to Damage Pool."
               onChange={updateValue}
             />
+            <NumberField
+              label="PRECISION (X)"
+              name="precisionX"
+              value={values.precisionX}
+              min={0}
+              error={validation.errors.precisionX}
+              labelTitle="PRECISION (X): move up to X failed Attack Dice into Armour Pool as successful hits."
+              onChange={updateValue}
+            />
           </div>
 
           <div style={{ display: "grid", gap: "0.5rem" }}>
@@ -535,6 +546,15 @@ export default function AttackCalculator(): ReactElement {
             min={0}
             error={validation.errors.toughX}
             labelTitle="TOUGH (X): change up to X failed Armour results into successes."
+            onChange={updateValue}
+          />
+          <NumberField
+            label="DODGE (X)"
+            name="dodgeX"
+            value={values.dodgeX}
+            min={0}
+            error={validation.errors.dodgeX}
+            labelTitle="DODGE (X): reduce total bypass dice moved by Surge + CRITICAL HIT by X (minimum 0)."
             onChange={updateValue}
           />
         </section>

@@ -7,6 +7,7 @@ const BASE_FORM = {
   rateOfAttack: "4",
   hitTarget: "3",
   damagePerDie: "2",
+  precisionX: "0",
   surgeEnabled: true,
   surgeFormula: "d3",
   critX: "0",
@@ -14,6 +15,7 @@ const BASE_FORM = {
   hitsY: "2",
   armourTarget: "4",
   toughX: "0",
+  dodgeX: "0",
   evadeEnabled: true,
   evadeTarget: "6",
 };
@@ -49,6 +51,35 @@ describe("calculateAttackOutcome", () => {
     expect(result.expectedBypassDice).toBeGreaterThan(0);
   });
 
+  it("precision increases expected hit successes and total damage", () => {
+    const withoutPrecision = calculateAttackOutcome(getValidInput({ precisionX: "0" }));
+    const withPrecision = calculateAttackOutcome(getValidInput({ precisionX: "2" }));
+
+    expect(withPrecision.expectedHitSuccesses).toBeGreaterThan(withoutPrecision.expectedHitSuccesses);
+    expect(withPrecision.expectedTotalDamage).toBeGreaterThan(withoutPrecision.expectedTotalDamage);
+  });
+
+  it("dodge reduces expected bypass and total damage", () => {
+    const withoutDodge = calculateAttackOutcome(getValidInput({ dodgeX: "0", critX: "2" }));
+    const withDodge = calculateAttackOutcome(getValidInput({ dodgeX: "2", critX: "2" }));
+
+    expect(withDodge.expectedBypassDice).toBeLessThan(withoutDodge.expectedBypassDice);
+    expect(withDodge.expectedTotalDamage).toBeLessThan(withoutDodge.expectedTotalDamage);
+  });
+
+  it("large dodge clamps bypass to zero", () => {
+    const outcome = calculateAttackOutcome(
+      getValidInput({
+        surgeEnabled: false,
+        surgeFormula: "not-used",
+        critX: "3",
+        dodgeX: "99",
+      }),
+    );
+
+    expect(outcome.expectedBypassDice).toBe(0);
+  });
+
   it("evade toggle impacts health-inflicting dice but not damage-pool dice", () => {
     const withEvade = calculateAttackOutcome(getValidInput({ evadeEnabled: true, evadeTarget: "6" }));
     const withoutEvade = calculateAttackOutcome(
@@ -67,19 +98,31 @@ describe("calculateAttackOutcome", () => {
   });
 
   it("supports hits-only path when model count is zero", () => {
-    const outcome = calculateAttackOutcome(
+    const baseline = calculateAttackOutcome(
       getValidInput({
         modelCount: "0",
         hitsX: "3",
         hitsY: "1",
+        precisionX: "0",
+        evadeEnabled: true,
+        evadeTarget: "6",
+      }),
+    );
+    const withPrecision = calculateAttackOutcome(
+      getValidInput({
+        modelCount: "0",
+        hitsX: "3",
+        hitsY: "1",
+        precisionX: "5",
         evadeEnabled: true,
         evadeTarget: "6",
       }),
     );
 
-    expect(outcome.expectedHitSuccesses).toBe(0);
-    expect(outcome.expectedBypassDice).toBe(0);
-    expect(outcome.expectedTotalDamage).toBeGreaterThan(0);
+    expect(baseline.expectedHitSuccesses).toBe(0);
+    expect(baseline.expectedBypassDice).toBe(0);
+    expect(baseline.expectedTotalDamage).toBeGreaterThan(0);
+    expect(withPrecision.expectedTotalDamage).toBeCloseTo(baseline.expectedTotalDamage, 8);
   });
 
   it("tough x reduces failed armour dice and expected damage", () => {

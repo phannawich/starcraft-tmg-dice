@@ -52,11 +52,12 @@ Core product promises:
 High-level flow:
 
 1. Roll to Hit.
-2. Apply Surge + Critical bypass.
-3. Resolve Armour failures (with Tough mitigation).
-4. Build Damage Pool (bypass + failed Armour dice).
-5. Optionally resolve Evade against Damage Pool.
-6. Convert surviving dice to total damage (Health Inflict).
+2. Apply Precision.
+3. Apply Surge + Critical bypass (with Dodge reduction).
+4. Resolve Armour failures (with Tough mitigation).
+5. Build Damage Pool (bypass + failed Armour dice).
+6. Optionally resolve Evade against Damage Pool.
+7. Convert surviving dice to total damage (Health Inflict).
 
 Inputs currently represented in UI:
 
@@ -64,11 +65,13 @@ Inputs currently represented in UI:
 - RoA
 - Hit target
 - Damage per die
+- PRECISION (X)
 - Surge enabled + Surge formula
 - CRITICAL HIT (X)
 - HITS X and HITS Y
 - Armour target
 - TOUGH (X)
+- DODGE (X)
 - Evade enabled + Evade target
 
 Outputs:
@@ -89,7 +92,7 @@ Current constraints include:
 - Integer checks for numeric fields.
 - d6 target bounds for hit/armour/evade (`2` to `6`).
 - `modelCount >= 0`, `rateOfAttack > 0`, `damagePerDie > 0`.
-- `critX`, `hitsX`, `toughX` are non-negative.
+- `precisionX`, `critX`, `hitsX`, `toughX`, `dodgeX` are non-negative.
 - `hitsY > 0` when `hitsX > 0`.
 - Evade target validation only enforced when Evade is enabled.
 - Attack dice guardrail: `modelCount * rateOfAttack <= 60`.
