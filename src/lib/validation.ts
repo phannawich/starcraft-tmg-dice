@@ -55,8 +55,8 @@ export function validateAttackForm(values: AttackFormValues): ValidationResult {
   const toughX = parseIntField(values.toughX, "toughX", errors);
   let evadeTarget = 6;
 
-  if (!errors.modelCount && modelCount <= 0) {
-    errors.modelCount = "Must be greater than 0.";
+  if (!errors.modelCount && modelCount < 0) {
+    errors.modelCount = "Cannot be negative.";
   }
 
   if (!errors.rateOfAttack && rateOfAttack <= 0) {

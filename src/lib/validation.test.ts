@@ -85,6 +85,18 @@ describe("validateAttackForm surge behavior", () => {
     expect(validation.errors.hitsY).toBeUndefined();
   });
 
+  it("allows zero model count for automatic-hit-only inputs", () => {
+    const validation = validateAttackForm({
+      ...BASE_FORM,
+      modelCount: "0",
+      hitsX: "3",
+      hitsY: "1",
+    });
+
+    expect(validation.ok).toBe(true);
+    expect(validation.errors.modelCount).toBeUndefined();
+  });
+
   it("rejects oversized combined armour input dice", () => {
     const validation = validateAttackForm({
       ...BASE_FORM,

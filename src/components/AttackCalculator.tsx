@@ -313,6 +313,11 @@ export default function AttackCalculator(): ReactElement {
     return Number.isInteger(parsedHitsX) && parsedHitsX > 0;
   }, [values.hitsX]);
   const surgeFormulaDisabled = !values.surgeEnabled;
+  const parsedModelCount = Number(values.modelCount);
+  const modelCountIsZero =
+    values.modelCount.trim() !== "" &&
+    Number.isInteger(parsedModelCount) &&
+    parsedModelCount === 0;
 
   function updateValue(name: keyof AttackFormValues, value: string): void {
     setValues((current) => ({
@@ -340,7 +345,7 @@ export default function AttackCalculator(): ReactElement {
               label="Model"
               name="modelCount"
               value={values.modelCount}
-              min={1}
+              min={0}
               error={validation.errors.modelCount}
               labelTitle="Amount of attacker models attacking with this weapon."
               onChange={updateValue}
@@ -350,6 +355,7 @@ export default function AttackCalculator(): ReactElement {
               name="rateOfAttack"
               value={values.rateOfAttack}
               min={1}
+              disabled={modelCountIsZero}
               error={validation.errors.rateOfAttack}
               labelTitle="Rate of Attack."
               onChange={updateValue}
@@ -360,6 +366,7 @@ export default function AttackCalculator(): ReactElement {
               value={values.hitTarget}
               min={2}
               max={6}
+              disabled={modelCountIsZero}
               error={validation.errors.hitTarget}
               onChange={updateValue}
             />
@@ -368,6 +375,7 @@ export default function AttackCalculator(): ReactElement {
               name="damagePerDie"
               value={values.damagePerDie}
               min={1}
+              disabled={modelCountIsZero}
               error={validation.errors.damagePerDie}
               labelTitle="Damage per die."
               onChange={updateValue}

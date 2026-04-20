@@ -66,6 +66,22 @@ describe("calculateAttackOutcome", () => {
     expect(withHits.expectedTotalDamage).toBeGreaterThan(withoutHits.expectedTotalDamage);
   });
 
+  it("supports hits-only path when model count is zero", () => {
+    const outcome = calculateAttackOutcome(
+      getValidInput({
+        modelCount: "0",
+        hitsX: "3",
+        hitsY: "1",
+        evadeEnabled: true,
+        evadeTarget: "6",
+      }),
+    );
+
+    expect(outcome.expectedHitSuccesses).toBe(0);
+    expect(outcome.expectedBypassDice).toBe(0);
+    expect(outcome.expectedTotalDamage).toBeGreaterThan(0);
+  });
+
   it("tough x reduces failed armour dice and expected damage", () => {
     const baseline = calculateAttackOutcome(getValidInput({ toughX: "0" }));
     const toughened = calculateAttackOutcome(getValidInput({ toughX: "2" }));

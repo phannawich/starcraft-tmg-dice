@@ -88,7 +88,7 @@ Current constraints include:
 
 - Integer checks for numeric fields.
 - d6 target bounds for hit/armour/evade (`2` to `6`).
-- `modelCount > 0`, `rateOfAttack > 0`, `damagePerDie > 0`.
+- `modelCount >= 0`, `rateOfAttack > 0`, `damagePerDie > 0`.
 - `critX`, `hitsX`, `toughX` are non-negative.
 - `hitsY > 0` when `hitsX > 0`.
 - Evade target validation only enforced when Evade is enabled.

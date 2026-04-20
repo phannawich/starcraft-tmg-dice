@@ -128,6 +128,66 @@ describe("AttackCalculator", () => {
     expect(hitsYInput).not.toHaveClass("is-input-disabled");
   });
 
+  it("supports zero models and keeps armour pool from HITS X", async () => {
+    const user = userEvent.setup();
+    render(<AttackCalculator />);
+
+    const modelInput = screen.getByLabelText(/^model$/i);
+    const hitsXInput = screen.getByLabelText(/^hits x$/i);
+    const hitsYInput = screen.getByLabelText(/^hits y$/i);
+
+    await user.clear(modelInput);
+    await user.type(modelInput, "0");
+    await user.clear(hitsXInput);
+    await user.type(hitsXInput, "3");
+    await user.clear(hitsYInput);
+    await user.type(hitsYInput, "1");
+
+    expect(screen.queryByText(/fix validation errors/i)).not.toBeInTheDocument();
+
+    const poolChartRaw = screen.getByTestId("pool-chart").getAttribute("data-chart");
+    expect(poolChartRaw).toBeTruthy();
+
+    const poolChart = JSON.parse(poolChartRaw ?? "{}") as {
+      datasets?: Array<{ data?: number[] }>;
+    };
+    const poolData = poolChart.datasets?.[0]?.data ?? [];
+
+    expect(poolData[0]).toBe(0);
+    expect(poolData[1]).toBe(3);
+  });
+
+  it("locks RoA, Hit, and Damage when model is zero", async () => {
+    const user = userEvent.setup();
+    render(<AttackCalculator />);
+
+    const modelInput = screen.getByLabelText(/^model$/i);
+    const roaInput = screen.getByLabelText(/^roa$/i);
+    const hitInput = screen.getByLabelText(/^hit$/i);
+    const damageInput = screen.getByLabelText(/^damage$/i);
+
+    expect(roaInput).not.toBeDisabled();
+    expect(hitInput).not.toBeDisabled();
+    expect(damageInput).not.toBeDisabled();
+
+    await user.clear(modelInput);
+    await user.type(modelInput, "0");
+
+    expect(roaInput).toBeDisabled();
+    expect(hitInput).toBeDisabled();
+    expect(damageInput).toBeDisabled();
+    expect(roaInput).toHaveClass("is-input-disabled");
+    expect(hitInput).toHaveClass("is-input-disabled");
+    expect(damageInput).toHaveClass("is-input-disabled");
+
+    await user.clear(modelInput);
+    await user.type(modelInput, "1");
+
+    expect(roaInput).not.toBeDisabled();
+    expect(hitInput).not.toBeDisabled();
+    expect(damageInput).not.toBeDisabled();
+  });
+
   it("enables surge formula editing when surge turned on", async () => {
     const user = userEvent.setup();
     render(<AttackCalculator />);
