@@ -25,12 +25,14 @@ This document summarizes the attack-flow model used by the calculator.
 1. **Roll to Hit**
    - Generate attack dice from models and RoA.
    - Apply Hit threshold (`2+` to `6+`).
-   - Hit successes enter Armour Pool.
+   - Apply `PRECISION (X)` by moving up to `X` failed Attack Dice into Armour Pool as successes.
+   - Hit successes (including Precision-moved dice) enter Armour Pool.
 
 2. **Resolve Surge + Critical Bypass**
    - Surge result is computed from Surge formula when Surge is enabled.
    - Bypass amount uses combined cap logic: dice moved directly to Damage Pool cannot exceed available Armour Pool dice.
    - `CRITICAL HIT (X)` is modeled as an additional bypass value.
+   - `DODGE (X)` reduces total Surge + CRITICAL bypass by `X` (minimum 0).
 
 3. **Armour Resolution**
    - Defender rolls Armour threshold.
@@ -55,8 +57,10 @@ This document summarizes the attack-flow model used by the calculator.
 ## Special Inputs Modeled
 
 - **CRITICAL HIT (X):** manual bypass contribution.
+- **PRECISION (X):** promotes failed attack dice into Armour Pool as hit successes.
 - **HITS X (Y):** automatic hits injected into Armour Pool with custom per-die damage `Y`.
 - **TOUGH (X):** post-armour mitigation on failed armour dice.
+- **DODGE (X):** reduces combined Surge + CRITICAL bypass before Damage Pool build.
 
 ## Notes
 

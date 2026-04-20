@@ -11,7 +11,9 @@ To use this tool, please visit https://phannawich.github.io/starcraft-tmg-dice/
 - Expected total damage and intermediate expected dice pools.
 - Supports:
   - Optional Surge formula (`d3`, `2d3+1`, integer values).
+  - `PRECISION (X)` failed-hit promotion into Armour Pool.
   - `CRITICAL HIT (X)` bypass.
+  - `DODGE (X)` bypass reduction during Surge/Critical resolution.
   - `HITS X (Y)` automatic hits.
   - `TOUGH (X)` armour mitigation.
   - Optional Evade toggle and threshold.

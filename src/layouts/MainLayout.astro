@@ -10,7 +10,8 @@ const { title = "StarCraft TMG Dice Calculator" } = Astro.props;
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0c1015" />
     <title>{title}</title>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-PZQM0SN7RK"></script>
@@ -43,6 +44,10 @@ const { title = "StarCraft TMG Dice Calculator" } = Astro.props;
         --ink: var(--text-primary);
         --ink-soft: var(--text-secondary);
         --surface: var(--bg-elev-1);
+        --app-backdrop:
+          radial-gradient(1050px 620px at 100% -10%, rgba(91, 180, 255, 0.15), transparent 56%),
+          radial-gradient(860px 640px at -12% 112%, rgba(57, 196, 154, 0.13), transparent 52%),
+          linear-gradient(180deg, var(--bg-1) 0%, var(--bg-0) 58%, #0c1015 100%);
       }
 
       * {
@@ -53,16 +58,30 @@ const { title = "StarCraft TMG Dice Calculator" } = Astro.props;
       body {
         margin: 0;
         padding: 0;
+        background-color: #0c1015;
+      }
+
+      html {
+        background: var(--app-backdrop);
       }
 
       body {
+        position: relative;
+        isolation: isolate;
         font-family: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
         color: var(--ink);
-        background:
-          radial-gradient(1050px 620px at 100% -10%, rgba(91, 180, 255, 0.15), transparent 56%),
-          radial-gradient(860px 640px at -12% 112%, rgba(57, 196, 154, 0.13), transparent 52%),
-          linear-gradient(180deg, var(--bg-1) 0%, var(--bg-0) 58%, #0c1015 100%);
+        background: transparent;
         min-height: 100vh;
+        min-height: 100dvh;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background: var(--app-backdrop);
       }
 
       main {
@@ -159,6 +178,11 @@ const { title = "StarCraft TMG Dice Calculator" } = Astro.props;
         margin: 0;
       }
 
+      .site-footer .kofi-row {
+        display: flex;
+        justify-content: flex-end;
+      }
+
       .kofi-link {
         display: inline-flex;
         align-items: center;
@@ -169,12 +193,21 @@ const { title = "StarCraft TMG Dice Calculator" } = Astro.props;
         background: color-mix(in srgb, var(--accent) 16%, #0f1520 84%);
         color: color-mix(in srgb, var(--ink) 94%, #ffffff 6%);
         font-weight: 600;
+        font-size: 0.8rem;
         text-decoration: none;
+        box-shadow: 0 10px 22px -14px rgba(2, 8, 16, 0.9);
       }
 
       .kofi-link:hover {
         background: color-mix(in srgb, var(--accent) 24%, #101824 76%);
         color: #ffffff;
+      }
+
+      @media (max-width: 720px) {
+        .kofi-link {
+          padding: 0.35rem 0.6rem;
+          font-size: 0.76rem;
+        }
       }
     </style>
   </head>
@@ -185,7 +218,7 @@ const { title = "StarCraft TMG Dice Calculator" } = Astro.props;
         <p>StarCraft and related names, logos, and trademarks belong to their respective owners. This project is not affiliated with, endorsed by, or sponsored by Blizzard Entertainment or Archon Studio. </p>
         <p>This tool was created by Phannawich (Boss) Jadpotwanich</p>
         <p>Bug reports are welcome on <a href="https://github.com/phannawich/starcraft-tmg-dice">GitHub.</a></p>
-        <p><a class="kofi-link" href="https://ko-fi.com/X8X51Y3TPS" target="_blank" rel="noopener noreferrer">Support this project on Ko-fi</a></p>
+        <p class="kofi-row"><a class="kofi-link" href="https://ko-fi.com/X8X51Y3TPS" target="_blank" rel="noopener noreferrer">Support this project on Ko-fi</a></p>
       </footer>
     </main>
   </body>

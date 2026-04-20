@@ -78,12 +78,16 @@ export function calculateAttackOutcome(input: AttackInput): AttackOutcome {
   let expectedHealthInflictedDice = 0;
 
   for (const hit of hitDist) {
-    expectedHitSuccesses += hit.value * hit.probability;
+    const misses = attackDice - hit.value;
+    const precisionHits = Math.min(input.precisionX, misses);
+    const effectiveHits = hit.value + precisionHits;
+    expectedHitSuccesses += effectiveHits * hit.probability;
 
     for (const surge of surgeDist) {
       const jointHitSurgeProb = hit.probability * surge.probability;
-      const bypass = Math.min(hit.value, Math.max(0, surge.value + input.critX));
-      const armourPool = hit.value - bypass;
+      const rawBypass = Math.min(effectiveHits, Math.max(0, surge.value + input.critX));
+      const bypass = Math.max(0, rawBypass - input.dodgeX);
+      const armourPool = effectiveHits - bypass;
       expectedBypassDice += bypass * jointHitSurgeProb;
 
       const armourKey = cacheKey(armourPool, armourFailProb);

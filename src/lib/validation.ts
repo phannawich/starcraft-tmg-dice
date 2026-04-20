@@ -9,6 +9,7 @@ export interface AttackFormValues {
   rateOfAttack: string;
   hitTarget: string;
   damagePerDie: string;
+  precisionX: string;
   surgeEnabled: boolean;
   surgeFormula: string;
   critX: string;
@@ -16,6 +17,7 @@ export interface AttackFormValues {
   hitsY: string;
   armourTarget: string;
   toughX: string;
+  dodgeX: string;
   evadeEnabled: boolean;
   evadeTarget: string;
 }
@@ -48,15 +50,17 @@ export function validateAttackForm(values: AttackFormValues): ValidationResult {
   const rateOfAttack = parseIntField(values.rateOfAttack, "rateOfAttack", errors);
   const hitTarget = parseIntField(values.hitTarget, "hitTarget", errors);
   const damagePerDie = parseIntField(values.damagePerDie, "damagePerDie", errors);
+  const precisionX = parseIntField(values.precisionX, "precisionX", errors);
   const critX = parseIntField(values.critX, "critX", errors);
   const hitsX = parseIntField(values.hitsX, "hitsX", errors);
-  let hitsY = 2;
+  let hitsY = 1;
   const armourTarget = parseIntField(values.armourTarget, "armourTarget", errors);
   const toughX = parseIntField(values.toughX, "toughX", errors);
+  const dodgeX = parseIntField(values.dodgeX, "dodgeX", errors);
   let evadeTarget = 6;
 
-  if (!errors.modelCount && modelCount <= 0) {
-    errors.modelCount = "Must be greater than 0.";
+  if (!errors.modelCount && modelCount < 0) {
+    errors.modelCount = "Cannot be negative.";
   }
 
   if (!errors.rateOfAttack && rateOfAttack <= 0) {
@@ -69,6 +73,10 @@ export function validateAttackForm(values: AttackFormValues): ValidationResult {
 
   if (!errors.critX && critX < 0) {
     errors.critX = "Cannot be negative.";
+  }
+
+  if (!errors.precisionX && precisionX < 0) {
+    errors.precisionX = "Cannot be negative.";
   }
 
   if (!errors.hitsX && hitsX < 0) {
@@ -89,6 +97,10 @@ export function validateAttackForm(values: AttackFormValues): ValidationResult {
 
   if (!errors.toughX && toughX < 0) {
     errors.toughX = "Cannot be negative.";
+  }
+
+  if (!errors.dodgeX && dodgeX < 0) {
+    errors.dodgeX = "Cannot be negative.";
   }
 
   if (!errors.hitTarget) {
@@ -155,6 +167,7 @@ export function validateAttackForm(values: AttackFormValues): ValidationResult {
       rateOfAttack,
       hitTarget,
       damagePerDie,
+      precisionX,
       surgeEnabled: values.surgeEnabled,
       surgeFormula,
       critX,
@@ -162,6 +175,7 @@ export function validateAttackForm(values: AttackFormValues): ValidationResult {
       hitsY,
       armourTarget,
       toughX,
+      dodgeX,
       evadeEnabled: values.evadeEnabled,
       evadeTarget,
     },

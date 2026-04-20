@@ -24,13 +24,15 @@ const INITIAL_VALUES: AttackFormValues = {
   rateOfAttack: "4",
   hitTarget: "3",
   damagePerDie: "2",
+  precisionX: "0",
   surgeEnabled: false,
   surgeFormula: "d3",
   critX: "0",
   hitsX: "0",
-  hitsY: "2",
+  hitsY: "1",
   armourTarget: "4",
   toughX: "0",
+  dodgeX: "0",
   evadeEnabled: false,
   evadeTarget: "6",
 };
@@ -312,7 +314,12 @@ export default function AttackCalculator(): ReactElement {
     const parsedHitsX = Number(values.hitsX);
     return Number.isInteger(parsedHitsX) && parsedHitsX > 0;
   }, [values.hitsX]);
-  const surgeFormulaDisabled = !values.surgeEnabled;
+  const parsedModelCount = Number(values.modelCount);
+  const modelCountIsZero =
+    values.modelCount.trim() !== "" &&
+    Number.isInteger(parsedModelCount) &&
+    parsedModelCount === 0;
+  const surgeFormulaDisabled = !values.surgeEnabled || modelCountIsZero;
 
   function updateValue(name: keyof AttackFormValues, value: string): void {
     setValues((current) => ({
@@ -340,7 +347,7 @@ export default function AttackCalculator(): ReactElement {
               label="Model"
               name="modelCount"
               value={values.modelCount}
-              min={1}
+              min={0}
               error={validation.errors.modelCount}
               labelTitle="Amount of attacker models attacking with this weapon."
               onChange={updateValue}
@@ -350,6 +357,7 @@ export default function AttackCalculator(): ReactElement {
               name="rateOfAttack"
               value={values.rateOfAttack}
               min={1}
+              disabled={modelCountIsZero}
               error={validation.errors.rateOfAttack}
               labelTitle="Rate of Attack."
               onChange={updateValue}
@@ -360,6 +368,7 @@ export default function AttackCalculator(): ReactElement {
               value={values.hitTarget}
               min={2}
               max={6}
+              disabled={modelCountIsZero}
               error={validation.errors.hitTarget}
               onChange={updateValue}
             />
@@ -368,6 +377,7 @@ export default function AttackCalculator(): ReactElement {
               name="damagePerDie"
               value={values.damagePerDie}
               min={1}
+              disabled={modelCountIsZero}
               error={validation.errors.damagePerDie}
               labelTitle="Damage per die."
               onChange={updateValue}
@@ -427,8 +437,19 @@ export default function AttackCalculator(): ReactElement {
               name="critX"
               value={values.critX}
               min={0}
+              disabled={modelCountIsZero}
               error={validation.errors.critX}
               labelTitle="CRITICAL HIT (X): move up to X dice from Armour Pool directly to Damage Pool."
+              onChange={updateValue}
+            />
+            <NumberField
+              label="PRECISION (X)"
+              name="precisionX"
+              value={values.precisionX}
+              min={0}
+              disabled={modelCountIsZero}
+              error={validation.errors.precisionX}
+              labelTitle="PRECISION (X): move up to X failed Attack Dice into Armour Pool as successful hits."
               onChange={updateValue}
             />
           </div>
@@ -456,7 +477,7 @@ export default function AttackCalculator(): ReactElement {
                     ...current,
                     hitsX: value,
                     hitsY:
-                      enableHitsY && current.hitsY.trim() === "" ? "2" : current.hitsY,
+                      enableHitsY && current.hitsY.trim() === "" ? "1" : current.hitsY,
                   }));
                 }}
               />
@@ -527,6 +548,15 @@ export default function AttackCalculator(): ReactElement {
             min={0}
             error={validation.errors.toughX}
             labelTitle="TOUGH (X): change up to X failed Armour results into successes."
+            onChange={updateValue}
+          />
+          <NumberField
+            label="DODGE (X)"
+            name="dodgeX"
+            value={values.dodgeX}
+            min={0}
+            error={validation.errors.dodgeX}
+            labelTitle="DODGE (X): reduce total bypass dice moved by Surge + CRITICAL HIT by X (minimum 0)."
             onChange={updateValue}
           />
         </section>

@@ -3,6 +3,7 @@ export interface AttackInput {
   rateOfAttack: number;
   hitTarget: number;
   damagePerDie: number;
+  precisionX: number;
   surgeEnabled: boolean;
   surgeFormula: string;
   critX: number;
@@ -10,6 +11,7 @@ export interface AttackInput {
   hitsY: number;
   armourTarget: number;
   toughX: number;
+  dodgeX: number;
   evadeEnabled: boolean;
   evadeTarget: number;
 }
