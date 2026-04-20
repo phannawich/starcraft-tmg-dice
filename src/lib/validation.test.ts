@@ -11,7 +11,7 @@ const BASE_FORM = {
   surgeFormula: "d3",
   critX: "0",
   hitsX: "0",
-  hitsY: "2",
+  hitsY: "1",
   armourTarget: "4",
   toughX: "0",
   dodgeX: "0",
@@ -121,7 +121,7 @@ describe("validateAttackForm surge behavior", () => {
       modelCount: "5",
       rateOfAttack: "10",
       hitsX: "11",
-      hitsY: "2",
+      hitsY: "1",
     });
 
     expect(validation.ok).toBe(false);

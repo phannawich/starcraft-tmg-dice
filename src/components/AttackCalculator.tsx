@@ -29,7 +29,7 @@ const INITIAL_VALUES: AttackFormValues = {
   surgeFormula: "d3",
   critX: "0",
   hitsX: "0",
-  hitsY: "2",
+  hitsY: "1",
   armourTarget: "4",
   toughX: "0",
   dodgeX: "0",
@@ -477,7 +477,7 @@ export default function AttackCalculator(): ReactElement {
                     ...current,
                     hitsX: value,
                     hitsY:
-                      enableHitsY && current.hitsY.trim() === "" ? "2" : current.hitsY,
+                      enableHitsY && current.hitsY.trim() === "" ? "1" : current.hitsY,
                   }));
                 }}
               />

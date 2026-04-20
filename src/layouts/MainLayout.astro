@@ -159,11 +159,12 @@ const { title = "StarCraft TMG Dice Calculator" } = Astro.props;
         margin: 0;
       }
 
+      .site-footer .kofi-row {
+        display: flex;
+        justify-content: flex-end;
+      }
+
       .kofi-link {
-        position: fixed;
-        right: max(1rem, env(safe-area-inset-right));
-        bottom: max(1rem, env(safe-area-inset-bottom));
-        z-index: 20;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -185,8 +186,6 @@ const { title = "StarCraft TMG Dice Calculator" } = Astro.props;
 
       @media (max-width: 720px) {
         .kofi-link {
-          right: max(0.75rem, env(safe-area-inset-right));
-          bottom: max(0.75rem, env(safe-area-inset-bottom));
           padding: 0.35rem 0.6rem;
           font-size: 0.76rem;
         }
@@ -200,8 +199,8 @@ const { title = "StarCraft TMG Dice Calculator" } = Astro.props;
         <p>StarCraft and related names, logos, and trademarks belong to their respective owners. This project is not affiliated with, endorsed by, or sponsored by Blizzard Entertainment or Archon Studio. </p>
         <p>This tool was created by Phannawich (Boss) Jadpotwanich</p>
         <p>Bug reports are welcome on <a href="https://github.com/phannawich/starcraft-tmg-dice">GitHub.</a></p>
+        <p class="kofi-row"><a class="kofi-link" href="https://ko-fi.com/X8X51Y3TPS" target="_blank" rel="noopener noreferrer">Support this project on Ko-fi</a></p>
       </footer>
     </main>
-    <a class="kofi-link" href="https://ko-fi.com/X8X51Y3TPS" target="_blank" rel="noopener noreferrer">Support this project on Ko-fi</a>
   </body>
 </html>

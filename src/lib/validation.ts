@@ -53,7 +53,7 @@ export function validateAttackForm(values: AttackFormValues): ValidationResult {
   const precisionX = parseIntField(values.precisionX, "precisionX", errors);
   const critX = parseIntField(values.critX, "critX", errors);
   const hitsX = parseIntField(values.hitsX, "hitsX", errors);
-  let hitsY = 2;
+  let hitsY = 1;
   const armourTarget = parseIntField(values.armourTarget, "armourTarget", errors);
   const toughX = parseIntField(values.toughX, "toughX", errors);
   const dodgeX = parseIntField(values.dodgeX, "dodgeX", errors);

@@ -39,6 +39,7 @@ describe("AttackCalculator", () => {
     expect(screen.getByLabelText(/^hits x$/i)).toBeInTheDocument();
     const hitsYInput = screen.getByLabelText(/^hits y$/i);
     expect(hitsYInput).toBeInTheDocument();
+    expect(hitsYInput).toHaveValue(1);
     expect(hitsYInput).toBeDisabled();
     expect(hitsYInput).toHaveClass("is-input-disabled");
     expect(screen.getByLabelText(/tough \(x\)/i)).toBeInTheDocument();
@@ -145,6 +146,24 @@ describe("AttackCalculator", () => {
     await user.type(hitsXInput, "2");
     expect(hitsYInput).not.toBeDisabled();
     expect(hitsYInput).not.toHaveClass("is-input-disabled");
+  });
+
+  it("autofills hits y to 1 when hits x is enabled from blank", async () => {
+    const user = userEvent.setup();
+    render(<AttackCalculator />);
+
+    const hitsXInput = screen.getByLabelText(/^hits x$/i);
+    const hitsYInput = screen.getByLabelText(/^hits y$/i);
+
+    await user.clear(hitsXInput);
+    await user.type(hitsXInput, "1");
+    await user.clear(hitsYInput);
+    await user.clear(hitsXInput);
+    await user.type(hitsXInput, "0");
+    await user.clear(hitsXInput);
+    await user.type(hitsXInput, "2");
+
+    expect(hitsYInput).toHaveValue(1);
   });
 
   it("supports zero models and keeps armour pool from HITS X", async () => {
