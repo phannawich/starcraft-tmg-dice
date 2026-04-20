@@ -314,12 +314,12 @@ export default function AttackCalculator(): ReactElement {
     const parsedHitsX = Number(values.hitsX);
     return Number.isInteger(parsedHitsX) && parsedHitsX > 0;
   }, [values.hitsX]);
-  const surgeFormulaDisabled = !values.surgeEnabled;
   const parsedModelCount = Number(values.modelCount);
   const modelCountIsZero =
     values.modelCount.trim() !== "" &&
     Number.isInteger(parsedModelCount) &&
     parsedModelCount === 0;
+  const surgeFormulaDisabled = !values.surgeEnabled || modelCountIsZero;
 
   function updateValue(name: keyof AttackFormValues, value: string): void {
     setValues((current) => ({
@@ -437,6 +437,7 @@ export default function AttackCalculator(): ReactElement {
               name="critX"
               value={values.critX}
               min={0}
+              disabled={modelCountIsZero}
               error={validation.errors.critX}
               labelTitle="CRITICAL HIT (X): move up to X dice from Armour Pool directly to Damage Pool."
               onChange={updateValue}
@@ -446,6 +447,7 @@ export default function AttackCalculator(): ReactElement {
               name="precisionX"
               value={values.precisionX}
               min={0}
+              disabled={modelCountIsZero}
               error={validation.errors.precisionX}
               labelTitle="PRECISION (X): move up to X failed Attack Dice into Armour Pool as successful hits."
               onChange={updateValue}

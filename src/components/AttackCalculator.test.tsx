@@ -176,7 +176,7 @@ describe("AttackCalculator", () => {
     expect(poolData[1]).toBe(3);
   });
 
-  it("locks RoA, Hit, and Damage when model is zero", async () => {
+  it("locks attack-dice stats when model is zero", async () => {
     const user = userEvent.setup();
     render(<AttackCalculator />);
 
@@ -184,10 +184,14 @@ describe("AttackCalculator", () => {
     const roaInput = screen.getByLabelText(/^roa$/i);
     const hitInput = screen.getByLabelText(/^hit$/i);
     const damageInput = screen.getByLabelText(/^damage$/i);
+    const critInput = screen.getByLabelText(/critical hit \(x\)/i);
+    const precisionInput = screen.getByLabelText(/precision \(x\)/i);
 
     expect(roaInput).not.toBeDisabled();
     expect(hitInput).not.toBeDisabled();
     expect(damageInput).not.toBeDisabled();
+    expect(critInput).not.toBeDisabled();
+    expect(precisionInput).not.toBeDisabled();
 
     await user.clear(modelInput);
     await user.type(modelInput, "0");
@@ -195,9 +199,13 @@ describe("AttackCalculator", () => {
     expect(roaInput).toBeDisabled();
     expect(hitInput).toBeDisabled();
     expect(damageInput).toBeDisabled();
+    expect(critInput).toBeDisabled();
+    expect(precisionInput).toBeDisabled();
     expect(roaInput).toHaveClass("is-input-disabled");
     expect(hitInput).toHaveClass("is-input-disabled");
     expect(damageInput).toHaveClass("is-input-disabled");
+    expect(critInput).toHaveClass("is-input-disabled");
+    expect(precisionInput).toHaveClass("is-input-disabled");
 
     await user.clear(modelInput);
     await user.type(modelInput, "1");
@@ -205,6 +213,33 @@ describe("AttackCalculator", () => {
     expect(roaInput).not.toBeDisabled();
     expect(hitInput).not.toBeDisabled();
     expect(damageInput).not.toBeDisabled();
+    expect(critInput).not.toBeDisabled();
+    expect(precisionInput).not.toBeDisabled();
+  });
+
+  it("locks surge formula when model is zero even if surge is enabled", async () => {
+    const user = userEvent.setup();
+    render(<AttackCalculator />);
+
+    const modelInput = screen.getByLabelText(/^model$/i);
+    const surgeCheckbox = screen.getByRole("checkbox", { name: /enable surge/i });
+    const surgeFormulaInput = screen.getByLabelText(/surge formula/i);
+
+    await user.click(surgeCheckbox);
+    expect(surgeFormulaInput).not.toBeDisabled();
+    expect(surgeFormulaInput).not.toHaveClass("is-input-disabled");
+
+    await user.clear(modelInput);
+    await user.type(modelInput, "0");
+
+    expect(surgeFormulaInput).toBeDisabled();
+    expect(surgeFormulaInput).toHaveClass("is-input-disabled");
+
+    await user.clear(modelInput);
+    await user.type(modelInput, "1");
+
+    expect(surgeFormulaInput).not.toBeDisabled();
+    expect(surgeFormulaInput).not.toHaveClass("is-input-disabled");
   });
 
   it("enables surge formula editing when surge turned on", async () => {
