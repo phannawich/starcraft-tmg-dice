@@ -2,13 +2,21 @@
 
 Interactive web calculator for **StarCraft Tabletop Miniatures Game (TMG)**.
 
-To use this tool, please visit https://phannawich.github.io/starcraft-tmg-dice/
+## Live Deployments
+
+- **Primary (GitHub Pages)**: https://phannawich.github.io/starcraft-tmg-dice/ (from `release` branch)
+- **Development (Render)**: https://starcraft-tmg-dice.onrender.com/ (from `dev` branch)
 
 
 ## Highlights
 
 - Exact PMF (probability mass function) of total damage.
 - Expected total damage and intermediate expected dice pools.
+- Step-by-step math breakdown with:
+  - raw Hit/Miss rates from the d6 roll
+  - post-Precision effective Hit/Miss rates
+  - bypass, armour, and damage conversion percentages
+  - expandable dice-outcome distributions for each stage
 - Supports:
   - Optional Surge formula (`d3`, `2d3+1`, integer values).
   - `PRECISION (X)` failed-hit promotion into Armour Pool.
@@ -21,6 +29,9 @@ To use this tool, please visit https://phannawich.github.io/starcraft-tmg-dice/
   - PMF by total damage.
   - Pool dice expectations (`Attack Pool -> Armour Pool -> Damage Pool -> Health Inflict`).
   - Dice outcome breakdown (hides `Evaded Dice` when Evade is disabled).
+- Expanded probability tables:
+  - Total damage PMF table.
+  - Expandable stage distributions (raw/effective hits, bypass, failed armour, damage pool, health-inflict dice).
 - Dark-mode UI with stronger disabled input affordances.
 
 Combat flow used by the calculator:
@@ -61,6 +72,29 @@ pnpm build
 ```
 
 Dev server: `http://localhost:4321`
+
+## Deployment
+
+This project is deployed to two separate services for different branches:
+
+### GitHub Pages (Release Branch)
+- **URL**: https://phannawich.github.io/starcraft-tmg-dice/
+- **Deployment**: Automatic via `.github/workflows/deploy-pages.yml`
+- **Trigger**: Pushes to `release` branch
+- **Base path**: `/starcraft-tmg-dice` (subdirectory deployment)
+- **Branch protection**: Only PRs from `dev` → `release` allowed (enforced by `release-source-guard.yml`)
+
+### Render (Development Branch)
+- **URL**: https://starcraft-tmg-dice.onrender.com/
+- **Deployment**: Automatic via GitHub integration (uses `render.yaml`)
+- **Trigger**: Pushes to `dev` branch
+- **Base path**: `/` (root deployment)
+- **Configuration**: See `render.yaml` at repository root
+
+Both deployments use **environment-aware Astro configuration**:
+- `astro.config.mjs` detects the `RENDER=true` environment variable
+- GitHub Pages deployment uses base path `/starcraft-tmg-dice`
+- Render deployment uses base path `/`
 
 ## Documentation Files
 

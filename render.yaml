@@ -1,0 +1,10 @@
+services:
+  - type: static_site
+    name: starcraft-tmg-dice
+    buildCommand: pnpm install --frozen-lockfile && pnpm build
+    staticPublishPath: ./dist
+    branches:
+      - branch: dev
+    envVars:
+      - key: RENDER
+        value: "true"
