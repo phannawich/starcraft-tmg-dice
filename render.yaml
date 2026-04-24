@@ -3,6 +3,13 @@ services:
     name: starcraft-tmg-dice
     buildCommand: pnpm install --frozen-lockfile && pnpm build
     staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /preview
+        destination: /index.html
+      - type: rewrite
+        source: /preview/*
+        destination: /*
     branches:
       - branch: dev
     envVars:
