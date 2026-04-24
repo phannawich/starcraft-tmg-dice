@@ -7,6 +7,6 @@ export default defineConfig({
   site: isRender
     ? "https://starcraft-tmg-dice.onrender.com"
     : "https://phannawich.github.io",
-  base: isRender ? "/preview" : "/starcraft-tmg-dice",
+  base: isRender ? "/" : "/starcraft-tmg-dice",
   integrations: [react()],
 });

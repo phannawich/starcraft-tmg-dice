@@ -5,7 +5,7 @@ Interactive web calculator for **StarCraft Tabletop Miniatures Game (TMG)**.
 ## Live Deployments
 
 - **Primary (GitHub Pages)**: https://phannawich.github.io/starcraft-tmg-dice/ (from `release` branch)
-- **Development (Render)**: https://starcraft-tmg-dice.onrender.com/preview/ (from `dev` branch)
+- **Development (Render)**: https://starcraft-tmg-dice.onrender.com/ (from `dev` branch)
 
 
 ## Highlights
@@ -85,16 +85,16 @@ This project is deployed to two separate services for different branches:
 - **Branch protection**: Only PRs from `dev` → `release` allowed (enforced by `release-source-guard.yml`)
 
 ### Render (Development Branch)
-- **URL**: https://starcraft-tmg-dice.onrender.com/preview/
+- **URL**: https://starcraft-tmg-dice.onrender.com/
 - **Deployment**: Automatic via GitHub integration (uses `render.yaml`)
 - **Trigger**: Pushes to `dev` branch
-- **Base path**: `/preview` (path-based preview deployment)
+- **Base path**: `/` (root deployment)
 - **Configuration**: See `render.yaml` at repository root
 
 Both deployments use **environment-aware Astro configuration**:
 - `astro.config.mjs` detects the `RENDER=true` environment variable
 - GitHub Pages deployment uses base path `/starcraft-tmg-dice`
-- Render deployment uses base path `/preview`
+- Render deployment uses base path `/`
 
 ## Documentation Files
 
