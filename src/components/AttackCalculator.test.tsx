@@ -1,6 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import AttackCalculator from "@/components/AttackCalculator";
 
@@ -15,10 +15,15 @@ vi.mock("react-chartjs-2", () => ({
 }));
 
 describe("AttackCalculator", () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
   it("renders expected summary outputs", () => {
     render(<AttackCalculator />);
 
     expect(screen.getByText(/expected totals/i)).toBeInTheDocument();
+    expect(screen.getByText(/step-by-step breakdown/i)).toBeInTheDocument();
     expect(screen.getByText(/probability mass function/i)).toBeInTheDocument();
     expect(screen.getByTestId("pmf-chart")).toBeInTheDocument();
     expect(screen.getByTestId("pool-chart")).toBeInTheDocument();
@@ -51,6 +56,96 @@ describe("AttackCalculator", () => {
 
     expect(screen.queryByLabelText(/weapon surge type/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/target combat tag/i)).not.toBeInTheDocument();
+  });
+
+  it("renders breakdown rates and expandable total-damage distribution", async () => {
+    const user = userEvent.setup();
+    render(<AttackCalculator />);
+
+    expect(screen.getByText(/^raw hits:/i)).toBeInTheDocument();
+    expect(screen.getByText(/^effective hits:/i)).toBeInTheDocument();
+    expect(screen.getByText(/total damage distribution/i)).toBeInTheDocument();
+
+    const totalDamageDetails = screen.getByTestId("total-damage-distribution");
+    expect(within(totalDamageDetails).getByRole("columnheader", { name: /total damage/i })).toBeInTheDocument();
+    expect(within(totalDamageDetails).getByRole("columnheader", { name: /probability/i })).toBeInTheDocument();
+
+    // Enable fractions via settings
+    const settingsButton = screen.getByRole("button", { name: /display settings/i });
+    await user.click(settingsButton);
+    const fractionCheckbox = screen.getByRole("checkbox", { name: /show fractions/i });
+    await user.click(fractionCheckbox);
+
+    expect(within(totalDamageDetails).getByRole("columnheader", { name: /fraction/i })).toBeInTheDocument();
+  });
+
+  it("uses decimal display setting with default 2 and allows changing to 0-6", async () => {
+    const user = userEvent.setup();
+    render(<AttackCalculator />);
+
+    const settingsButton = screen.getByRole("button", { name: /display settings/i });
+    await user.click(settingsButton);
+
+    const select = screen.getByLabelText(/decimal places/i);
+    expect(select).toHaveValue("4");
+    expect(screen.getAllByText(/66.6667%/i).length).toBeGreaterThan(0);
+
+    await user.selectOptions(select, "0");
+    expect(screen.getAllByText(/67%/i).length).toBeGreaterThan(0);
+    expect(window.localStorage.getItem("starcraftDiceDecimalPlaces")).toBe("0");
+
+    await user.selectOptions(select, "6");
+    expect(select).toHaveValue("6");
+    expect(window.localStorage.getItem("starcraftDiceDecimalPlaces")).toBe("6");
+  });
+
+  it("falls back to default precision when storage is invalid", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem("starcraftDiceDecimalPlaces", "invalid");
+
+    render(<AttackCalculator />);
+
+    await user.click(screen.getByRole("button", { name: /display settings/i }));
+    expect(screen.getByLabelText(/decimal places/i)).toHaveValue("4");
+  });
+
+  it("shows exact total-damage fractions for precision + critical example", async () => {
+    const user = userEvent.setup();
+    render(<AttackCalculator />);
+
+    const model = screen.getByLabelText(/^model$/i);
+    const roa = screen.getByLabelText(/^roa$/i);
+    const hit = screen.getByLabelText(/^hit$/i);
+    const damage = screen.getByLabelText(/^damage$/i);
+    const armour = screen.getByLabelText(/^armour$/i);
+    const precision = screen.getByLabelText(/precision \(x\)/i);
+    const critical = screen.getByLabelText(/critical hit \(x\)/i);
+
+    await user.clear(model);
+    await user.type(model, "1");
+    await user.clear(roa);
+    await user.type(roa, "2");
+    await user.clear(hit);
+    await user.type(hit, "2");
+    await user.clear(damage);
+    await user.type(damage, "3");
+    await user.clear(armour);
+    await user.type(armour, "4");
+    await user.clear(precision);
+    await user.type(precision, "1");
+    await user.clear(critical);
+    await user.type(critical, "1");
+
+    // Enable fractions via settings
+    const settingsButton = screen.getByRole("button", { name: /display settings/i });
+    await user.click(settingsButton);
+    const fractionCheckbox = screen.getByRole("checkbox", { name: /show fractions/i });
+    await user.click(fractionCheckbox);
+
+    const totalDamageDetails = screen.getByTestId("total-damage-distribution");
+    expect(within(totalDamageDetails).getByText("37/72")).toBeInTheDocument();
+    expect(within(totalDamageDetails).getByText("35/72")).toBeInTheDocument();
+    expect(within(totalDamageDetails).getByRole("columnheader", { name: /fraction/i })).toBeInTheDocument();
   });
 
   it("updates chart labels/data when an input changes", async () => {
@@ -104,20 +199,20 @@ describe("AttackCalculator", () => {
     expect(pmfOptions.scales?.x?.ticks?.color).toBe("rgba(166,178,199,0.92)");
     expect(pmfOptions.scales?.x?.grid?.color).toBe("rgba(43,54,72,0.58)");
     expect(pmfOptions.scales?.y?.ticks?.color).toBe("rgba(166,178,199,0.92)");
-    expect(pmfOptions.scales?.y?.ticks?.precision).toBe(0);
+    expect(pmfOptions.scales?.y?.ticks?.precision).toBe(4);
     expect(pmfOptions.scales?.y?.grid?.color).toBe("rgba(43,54,72,0.58)");
     expect(pmfOptions.scales?.x?.title?.text).toBe("Total Damage");
     expect(pmfOptions.scales?.y?.title?.text).toBe("Probability (%)");
 
     const poolOptions = getChartOptions("pool-chart");
     expect(poolOptions.scales?.y?.ticks?.color).toBe("rgba(166,178,199,0.92)");
-    expect(poolOptions.scales?.y?.ticks?.precision).toBe(0);
+    expect(poolOptions.scales?.y?.ticks?.precision).toBe(4);
     expect(poolOptions.scales?.y?.grid?.color).toBe("rgba(43,54,72,0.58)");
     expect(poolOptions.scales?.y?.title?.text).toBe("Expected Dice");
 
     const outcomeOptions = getChartOptions("outcome-chart");
     expect(outcomeOptions.scales?.y?.ticks?.color).toBe("rgba(166,178,199,0.92)");
-    expect(outcomeOptions.scales?.y?.ticks?.precision).toBe(0);
+    expect(outcomeOptions.scales?.y?.ticks?.precision).toBe(4);
     expect(outcomeOptions.scales?.y?.grid?.color).toBe("rgba(43,54,72,0.58)");
     expect(outcomeOptions.scales?.y?.title?.text).toBe("Expected Dice");
   });
@@ -361,5 +456,18 @@ describe("AttackCalculator", () => {
     expect(after.labels).toEqual(["Hit Dice", "Safe Dice", "Evaded Dice", "Damage Dice"]);
     expect(after.data[2]).toBeGreaterThan(0);
     expect(after.data[3]).toBeLessThan(before.data[2]);
+  });
+
+  it("shows evade as skipped until enabled in step-by-step breakdown", async () => {
+    const user = userEvent.setup();
+    render(<AttackCalculator />);
+
+    expect(screen.getByText(/evade: skipped/i)).toBeInTheDocument();
+
+    const evadeCheckbox = screen.getByRole("checkbox", { name: /enable evade/i });
+    await user.click(evadeCheckbox);
+
+    expect(screen.queryByText(/evade: skipped/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/evaded dice:/i)).toBeInTheDocument();
   });
 });

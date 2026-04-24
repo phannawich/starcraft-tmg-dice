@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactElement } from "react";
+import { useEffect, useMemo, useState, type ReactElement } from "react";
 import {
   BarElement,
   CategoryScale,
@@ -12,6 +12,17 @@ import {
 import { Bar } from "react-chartjs-2";
 
 import { calculateAttackOutcome } from "@/lib/engine";
+import {
+  DISPLAY_DECIMAL_DEFAULT,
+  DISPLAY_DECIMAL_MAX,
+  DISPLAY_DECIMAL_MIN,
+  clampDecimalPlaces,
+  getCommonProbabilityDenominator,
+  formatNumberWithPrecision,
+  formatPercentWithPrecision,
+  toProbabilityFraction,
+} from "@/lib/formatting";
+import type { DistributionEntry } from "@/lib/types";
 import {
   validateAttackForm,
   type AttackFormValues,
@@ -41,6 +52,8 @@ const CHART_TEXT = "rgba(166,178,199,0.92)";
 const CHART_GRID = "rgba(43,54,72,0.58)";
 const DISABLED_TINT_PATTERN =
   "repeating-linear-gradient(-45deg, rgba(127, 141, 164, 0.15) 0 6px, rgba(127, 141, 164, 0.04) 6px 12px)";
+const DECIMAL_STORAGE_KEY = "starcraftDiceDecimalPlaces";
+const FRACTION_DISPLAY_KEY = "starcraftDiceFractionDisplay";
 
 const CHART_OPTIONS: ChartOptions<"bar"> = {
   responsive: true,
@@ -70,7 +83,7 @@ const CHART_OPTIONS: ChartOptions<"bar"> = {
     y: {
       beginAtZero: true,
       ticks: {
-        precision: 0,
+        precision: DISPLAY_DECIMAL_DEFAULT,
         color: CHART_TEXT,
       },
       grid: {
@@ -80,14 +93,114 @@ const CHART_OPTIONS: ChartOptions<"bar"> = {
   },
 };
 
-function formatPercent(probability: number): string {
-  return `${(probability * 100).toFixed(2)}%`;
+interface DistributionDetailsProps {
+  title: string;
+  valueLabel: string;
+  entries: DistributionEntry[];
+  decimalPlaces: number;
+  showFractions: boolean;
+  testId?: string;
 }
 
-function formatNumber(value: number): string {
-  return value.toLocaleString(undefined, {
-    maximumFractionDigits: 4,
-  });
+function DistributionDetails({
+  title,
+  valueLabel,
+  entries,
+  decimalPlaces,
+  showFractions,
+  testId,
+}: DistributionDetailsProps): ReactElement {
+  const commonDenominator = useMemo(
+    () => getCommonProbabilityDenominator(entries.map((entry) => entry.probability)),
+    [entries],
+  );
+
+  return (
+    <details
+      data-testid={testId}
+      style={{
+        border: "1px solid var(--line)",
+        borderRadius: 10,
+        padding: "0.5rem 0.6rem",
+        background: "rgba(255, 255, 255, 0.01)",
+      }}
+    >
+      <summary style={{ cursor: "pointer", fontWeight: 600, color: "var(--ink)" }}>
+        {title}
+      </summary>
+      <div style={{ marginTop: "0.55rem", overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 240 }}>
+          <thead>
+            <tr>
+              <th
+                style={{
+                  textAlign: "left",
+                  padding: "0.4rem",
+                  borderBottom: "1px solid var(--line)",
+                }}
+              >
+                {valueLabel}
+              </th>
+              {showFractions && (
+                <th
+                  style={{
+                    textAlign: "left",
+                    padding: "0.4rem",
+                    width: "7.5rem",
+                    whiteSpace: "nowrap",
+                    borderBottom: "1px solid var(--line)",
+                  }}
+                >
+                  Fraction
+                </th>
+              )}
+              <th
+                style={{
+                  textAlign: "right",
+                  padding: "0.4rem",
+                  borderBottom: "1px solid var(--line)",
+                }}
+              >
+                Probability
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {entries.map((entry) => (
+              <tr key={entry.value}>
+                <td style={{ padding: "0.35rem 0.4rem", borderBottom: "1px solid var(--line)" }}>
+                  {entry.value}
+                </td>
+                {showFractions && (
+                  <td
+                    style={{
+                      padding: "0.35rem 0.4rem",
+                      textAlign: "left",
+                      width: "7.5rem",
+                      whiteSpace: "nowrap",
+                      fontVariantNumeric: "tabular-nums",
+                      borderBottom: "1px solid var(--line)",
+                    }}
+                  >
+                    {toProbabilityFraction(entry.probability, commonDenominator)}
+                  </td>
+                )}
+                <td
+                  style={{
+                    padding: "0.35rem 0.4rem",
+                    textAlign: "right",
+                    borderBottom: "1px solid var(--line)",
+                  }}
+                >
+                  {formatPercentWithPrecision(entry.probability, decimalPlaces)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </details>
+  );
 }
 
 function FieldError({ error }: { error?: string }): ReactElement | null {
@@ -168,12 +281,71 @@ function NumberField({
 
 export default function AttackCalculator(): ReactElement {
   const [values, setValues] = useState<AttackFormValues>(INITIAL_VALUES);
+  const [decimalPlaces, setDecimalPlaces] = useState<number>(DISPLAY_DECIMAL_DEFAULT);
+  const [showFractions, setShowFractions] = useState<boolean>(false);
+  const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(DECIMAL_STORAGE_KEY);
+      if (raw === null) {
+        return;
+      }
+      const parsed = Number(raw);
+      setDecimalPlaces(clampDecimalPlaces(parsed));
+    } catch {
+      setDecimalPlaces(DISPLAY_DECIMAL_DEFAULT);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(FRACTION_DISPLAY_KEY);
+      if (raw === null) {
+        return;
+      }
+      setShowFractions(raw === "true");
+    } catch {
+      setShowFractions(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(DECIMAL_STORAGE_KEY, String(clampDecimalPlaces(decimalPlaces)));
+    } catch {
+      // localStorage is optional for this preference.
+    }
+  }, [decimalPlaces]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(FRACTION_DISPLAY_KEY, String(showFractions));
+    } catch {
+      // localStorage is optional for this preference.
+    }
+  }, [showFractions]);
+
+  const formatNumber = useMemo(
+    () => (value: number) => formatNumberWithPrecision(value, decimalPlaces),
+    [decimalPlaces],
+  );
+  const formatPercent = useMemo(
+    () => (probability: number) => formatPercentWithPrecision(probability, decimalPlaces),
+    [decimalPlaces],
+  );
 
   const validation = useMemo(() => validateAttackForm(values), [values]);
   const outcome = useMemo(
     () => (validation.ok && validation.data ? calculateAttackOutcome(validation.data) : null),
     [validation],
   );
+  const pmfFractionDenominator = useMemo(() => {
+    if (!outcome) {
+      return 1;
+    }
+    return getCommonProbabilityDenominator(outcome.pmf.map((entry) => entry.probability));
+  }, [outcome]);
 
   const poolExpectations = useMemo(() => {
     if (!validation.ok || !validation.data || !outcome) {
@@ -206,7 +378,9 @@ export default function AttackCalculator(): ReactElement {
       datasets: [
         {
           label: "Probability",
-          data: outcome.pmf.map((entry) => Number((entry.probability * 100).toFixed(6))),
+          data: outcome.pmf.map((entry) =>
+            Number((entry.probability * 100).toFixed(decimalPlaces)),
+          ),
           backgroundColor: "rgba(91,180,255,0.8)",
           borderRadius: 4,
           barPercentage: 0.95,
@@ -214,7 +388,7 @@ export default function AttackCalculator(): ReactElement {
         },
       ],
     };
-  }, [outcome]);
+  }, [decimalPlaces, outcome]);
 
   const poolChartData: ChartData<"bar"> | null = useMemo(() => {
     if (!poolExpectations) {
@@ -223,10 +397,10 @@ export default function AttackCalculator(): ReactElement {
 
     const labels = ["Attack Pool", "Armour Pool", "Damage Pool", "Health Inflict"];
     const data = [
-      Number(poolExpectations.attackPoolDice.toFixed(6)),
-      Number(poolExpectations.armourPoolDice.toFixed(6)),
-      Number(poolExpectations.damagePoolDice.toFixed(6)),
-      Number(poolExpectations.healthInflictDice.toFixed(6)),
+      Number(poolExpectations.attackPoolDice.toFixed(decimalPlaces)),
+      Number(poolExpectations.armourPoolDice.toFixed(decimalPlaces)),
+      Number(poolExpectations.damagePoolDice.toFixed(decimalPlaces)),
+      Number(poolExpectations.healthInflictDice.toFixed(decimalPlaces)),
     ];
     const backgroundColor = [
       "rgba(91,180,255,0.82)",
@@ -246,7 +420,7 @@ export default function AttackCalculator(): ReactElement {
         },
       ],
     };
-  }, [poolExpectations]);
+  }, [decimalPlaces, poolExpectations]);
 
   const outcomeChartData: ChartData<"bar"> | null = useMemo(() => {
     if (!validation.ok || !validation.data || !outcome || !poolExpectations) {
@@ -265,15 +439,15 @@ export default function AttackCalculator(): ReactElement {
       : ["Hit Dice", "Safe Dice", "Damage Dice"];
     const data = validation.data.evadeEnabled
       ? [
-          Number(hitDice.toFixed(6)),
-          Number(safeDice.toFixed(6)),
-          Number(evadedDice.toFixed(6)),
-          Number(healthInflictingDice.toFixed(6)),
+          Number(hitDice.toFixed(decimalPlaces)),
+          Number(safeDice.toFixed(decimalPlaces)),
+          Number(evadedDice.toFixed(decimalPlaces)),
+          Number(healthInflictingDice.toFixed(decimalPlaces)),
         ]
       : [
-          Number(hitDice.toFixed(6)),
-          Number(safeDice.toFixed(6)),
-          Number(healthInflictingDice.toFixed(6)),
+          Number(hitDice.toFixed(decimalPlaces)),
+          Number(safeDice.toFixed(decimalPlaces)),
+          Number(healthInflictingDice.toFixed(decimalPlaces)),
         ];
     const backgroundColor = validation.data.evadeEnabled
       ? [
@@ -299,7 +473,7 @@ export default function AttackCalculator(): ReactElement {
         },
       ],
     };
-  }, [validation, outcome, poolExpectations]);
+  }, [decimalPlaces, validation, outcome, poolExpectations]);
 
   const chartKeySeed = useMemo(() => {
     if (!outcome) {
@@ -574,12 +748,113 @@ export default function AttackCalculator(): ReactElement {
             className="panel"
             style={{
               borderRadius: 12,
-              padding: "0.9rem",
+              padding: "0.9rem 3.2rem 0.9rem 0.9rem",
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
               gap: "1rem",
+              position: "relative",
             }}
           >
+            <div
+              style={{
+                position: "absolute",
+                top: "0.9rem",
+                right: "0.9rem",
+                zIndex: 3,
+              }}
+            >
+              <button
+                type="button"
+                aria-label="Display settings"
+                title="Display settings"
+                onClick={() => setSettingsOpen((current) => !current)}
+                style={{
+                  border: "1px solid var(--line)",
+                  background: "var(--bg-input)",
+                  color: "var(--ink)",
+                  borderRadius: 8,
+                  width: 30,
+                  height: 30,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                }}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.06V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-.4-1.06 1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.06-.4H2.9a2 2 0 1 1 0-4H3a1.7 1.7 0 0 0 1.06-.4 1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.06V2.9a2 2 0 1 1 4 0V3a1.7 1.7 0 0 0 .4 1.06 1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 .6 1 1.7 1.7 0 0 0 1.06.4h.1a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.06.4 1.7 1.7 0 0 0-.6 1Z" />
+                </svg>
+              </button>
+              {settingsOpen && (
+                <div
+                  data-testid="display-settings-panel"
+                  style={{
+                    position: "absolute",
+                    top: "2.2rem",
+                    right: 0,
+                    zIndex: 2,
+                    border: "1px solid var(--line)",
+                    borderRadius: 10,
+                    background: "var(--bg-elev-2)",
+                    padding: "0.55rem",
+                    minWidth: 160,
+                    boxShadow: "0 8px 28px rgba(0, 0, 0, 0.3)",
+                  }}
+                >
+                  <label style={{ display: "grid", gap: "0.35rem", fontSize: "0.84rem", color: "var(--ink-soft)" }}>
+                    Decimal Places
+                    <select
+                      aria-label="Decimal places"
+                      value={decimalPlaces}
+                      onChange={(event) => {
+                        const parsed = Number(event.currentTarget.value);
+                        setDecimalPlaces(clampDecimalPlaces(parsed));
+                      }}
+                      style={{
+                        border: "1px solid var(--line)",
+                        borderRadius: 8,
+                        background: "var(--bg-input)",
+                        color: "var(--ink)",
+                        padding: "0.35rem 0.45rem",
+                        fontSize: "0.9rem",
+                      }}
+                    >
+                      {Array.from(
+                        { length: DISPLAY_DECIMAL_MAX - DISPLAY_DECIMAL_MIN + 1 },
+                        (_, idx) => DISPLAY_DECIMAL_MIN + idx,
+                      ).map((value) => (
+                        <option key={value} value={value}>
+                          {value}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <p style={{ margin: "0.4rem 0 0", color: "var(--ink-soft)", fontSize: "0.8rem" }}>
+                    {decimalPlaces} decimals
+                  </p>
+                  <label style={{ display: "flex", gap: "0.4rem", alignItems: "center", margin: "0.55rem 0 0", fontSize: "0.84rem", color: "var(--ink-soft)", cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={showFractions}
+                      onChange={(event) => setShowFractions(event.currentTarget.checked)}
+                      style={{ cursor: "pointer" }}
+                    />
+                    Show Fractions
+                  </label>
+                </div>
+              )}
+            </div>
             <article>
               <h2 style={{ margin: "0 0 0.45rem", fontSize: "0.95rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--ink-soft)" }}>
                 Expected Totals
@@ -623,6 +898,10 @@ export default function AttackCalculator(): ReactElement {
                       ...CHART_OPTIONS.scales,
                       y: {
                         ...CHART_OPTIONS.scales?.y,
+                        ticks: {
+                          ...CHART_OPTIONS.scales?.y?.ticks,
+                          precision: decimalPlaces,
+                        },
                         beginAtZero: true,
                         title: {
                           display: true,
@@ -658,6 +937,10 @@ export default function AttackCalculator(): ReactElement {
                       ...CHART_OPTIONS.scales,
                       y: {
                         ...CHART_OPTIONS.scales?.y,
+                        ticks: {
+                          ...CHART_OPTIONS.scales?.y?.ticks,
+                          precision: decimalPlaces,
+                        },
                         beginAtZero: true,
                         title: {
                           display: true,
@@ -685,6 +968,10 @@ export default function AttackCalculator(): ReactElement {
                       ...CHART_OPTIONS.scales,
                       y: {
                         ...CHART_OPTIONS.scales?.y,
+                        ticks: {
+                          ...CHART_OPTIONS.scales?.y?.ticks,
+                          precision: decimalPlaces,
+                        },
                         beginAtZero: true,
                         title: {
                           display: true,
@@ -700,11 +987,12 @@ export default function AttackCalculator(): ReactElement {
           </section>
 
           <section className="panel" style={{ padding: "0.9rem", overflowX: "auto" }}>
-            <h2 style={{ margin: "0 0 0.6rem", fontSize: "1rem" }}>Probability Mass Function</h2>
+            <h2 style={{ margin: "0 0 0.6rem", fontSize: "1rem" }}>Probability Mass Function (Total Damage)</h2>
             <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 240 }}>
               <thead>
                 <tr>
                   <th style={{ textAlign: "left", padding: "0.45rem", borderBottom: "1px solid var(--line)" }}>Total Damage</th>
+                  <th style={{ textAlign: "left", padding: "0.45rem", width: "7.5rem", whiteSpace: "nowrap", borderBottom: "1px solid var(--line)" }}>Fraction</th>
                   <th style={{ textAlign: "right", padding: "0.45rem", borderBottom: "1px solid var(--line)" }}>Probability</th>
                 </tr>
               </thead>
@@ -712,6 +1000,9 @@ export default function AttackCalculator(): ReactElement {
                 {outcome.pmf.map((entry) => (
                   <tr key={entry.value}>
                     <td style={{ padding: "0.4rem 0.45rem", borderBottom: "1px solid var(--line)" }}>{entry.value}</td>
+                    <td style={{ padding: "0.4rem 0.45rem", textAlign: "left", width: "7.5rem", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums", borderBottom: "1px solid var(--line)" }}>
+                      {toProbabilityFraction(entry.probability, pmfFractionDenominator)}
+                    </td>
                     <td style={{ padding: "0.4rem 0.45rem", textAlign: "right", borderBottom: "1px solid var(--line)" }}>
                       {formatPercent(entry.probability)}
                     </td>
@@ -719,6 +1010,177 @@ export default function AttackCalculator(): ReactElement {
                 ))}
               </tbody>
             </table>
+          </section>
+
+          <section className="panel" style={{ padding: "0.9rem", display: "grid", gap: "0.85rem" }}>
+            <header>
+              <h2 style={{ margin: "0 0 0.35rem", fontSize: "1rem" }}>Step-by-Step Breakdown</h2>
+              <p style={{ margin: 0, color: "var(--ink-soft)" }}>
+                Percentages below are expected rates based on expected dice counts.
+              </p>
+            </header>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+                gap: "0.8rem",
+              }}
+            >
+              <article
+                style={{
+                  border: "1px solid var(--line)",
+                  borderRadius: 10,
+                  padding: "0.7rem",
+                  display: "grid",
+                  gap: "0.25rem",
+                }}
+              >
+                <h3 style={{ margin: 0, fontSize: "0.93rem", color: "var(--ink)" }}>Hit Step</h3>
+                <p style={{ margin: 0 }}>Attack Dice: {formatNumber(outcome.breakdown.expected.attackDice)}</p>
+                <p style={{ margin: 0 }}>
+                  Raw Hits: {formatNumber(outcome.breakdown.expected.rawHitDice)} ({formatPercent(outcome.breakdown.rates.rawHitRate)})
+                </p>
+                <p style={{ margin: 0 }}>
+                  Raw Misses: {formatNumber(outcome.breakdown.expected.rawMissDice)} ({formatPercent(outcome.breakdown.rates.rawMissRate)})
+                </p>
+                <p style={{ margin: 0 }}>
+                  Precision Promoted: {formatNumber(outcome.breakdown.expected.precisionPromotedDice)}
+                </p>
+                <p style={{ margin: 0 }}>
+                  Effective Hits: {formatNumber(outcome.breakdown.expected.effectiveHitDice)} ({formatPercent(outcome.breakdown.rates.effectiveHitRate)})
+                </p>
+                <p style={{ margin: 0 }}>
+                  Effective Misses: {formatNumber(outcome.breakdown.expected.effectiveMissDice)} ({formatPercent(outcome.breakdown.rates.effectiveMissRate)})
+                </p>
+              </article>
+
+              <article
+                style={{
+                  border: "1px solid var(--line)",
+                  borderRadius: 10,
+                  padding: "0.7rem",
+                  display: "grid",
+                  gap: "0.25rem",
+                }}
+              >
+                <h3 style={{ margin: 0, fontSize: "0.93rem", color: "var(--ink)" }}>Bypass Step</h3>
+                <p style={{ margin: 0 }}>
+                  Surge + Critical (Pre-Dodge): {formatNumber(outcome.breakdown.expected.preDodgeBypassDice)}
+                </p>
+                <p style={{ margin: 0 }}>
+                  Bypass After Dodge: {formatNumber(outcome.breakdown.expected.bypassDice)}
+                </p>
+                <p style={{ margin: 0 }}>
+                  Bypass of Effective Hits: {formatPercent(outcome.breakdown.rates.bypassOfEffectiveHitsRate)}
+                </p>
+              </article>
+
+              <article
+                style={{
+                  border: "1px solid var(--line)",
+                  borderRadius: 10,
+                  padding: "0.7rem",
+                  display: "grid",
+                  gap: "0.25rem",
+                }}
+              >
+                <h3 style={{ margin: 0, fontSize: "0.93rem", color: "var(--ink)" }}>Armour Step</h3>
+                <p style={{ margin: 0 }}>
+                  Armour Dice Rolled: {formatNumber(outcome.breakdown.expected.armourDiceRolled)}
+                </p>
+                <p style={{ margin: 0 }}>
+                  Armour Saves: {formatNumber(outcome.breakdown.expected.armourSavedDice)} ({formatPercent(outcome.breakdown.rates.armourSaveRate)})
+                </p>
+                <p style={{ margin: 0 }}>
+                  Raw Armour Fails: {formatNumber(outcome.breakdown.expected.rawArmourFailedDice)} ({formatPercent(outcome.breakdown.rates.armourFailRate)})
+                </p>
+                <p style={{ margin: 0 }}>
+                  Tough Mitigated: {formatNumber(outcome.breakdown.expected.toughMitigatedDice)}
+                </p>
+                <p style={{ margin: 0 }}>
+                  Final Failed Armour: {formatNumber(outcome.breakdown.expected.finalFailedArmourDice)}
+                </p>
+              </article>
+
+              <article
+                style={{
+                  border: "1px solid var(--line)",
+                  borderRadius: 10,
+                  padding: "0.7rem",
+                  display: "grid",
+                  gap: "0.25rem",
+                }}
+              >
+                <h3 style={{ margin: 0, fontSize: "0.93rem", color: "var(--ink)" }}>Damage Step</h3>
+                <p style={{ margin: 0 }}>
+                  Damage Pool Dice: {formatNumber(outcome.breakdown.expected.damagePoolDice)}
+                </p>
+                {values.evadeEnabled ? (
+                  <p style={{ margin: 0 }}>
+                    Evaded Dice: {formatNumber(outcome.breakdown.expected.evadedDice)} ({formatPercent(outcome.breakdown.rates.evadeRate)})
+                  </p>
+                ) : (
+                  <p style={{ margin: 0 }}>Evade: Skipped</p>
+                )}
+                <p style={{ margin: 0 }}>
+                  Health-Inflicting Dice: {formatNumber(outcome.breakdown.expected.healthInflictedDice)} ({formatPercent(outcome.breakdown.rates.damageConversionRate)})
+                </p>
+              </article>
+            </div>
+
+            <div style={{ display: "grid", gap: "0.6rem" }}>
+              <DistributionDetails
+                title="Raw Hit Dice Distribution"
+                valueLabel="Raw Hit Dice"
+                entries={outcome.breakdown.distributions.rawHitDice}
+                decimalPlaces={decimalPlaces}
+                showFractions={showFractions}
+              />
+              <DistributionDetails
+                title="Effective Hit Dice Distribution"
+                valueLabel="Effective Hit Dice"
+                entries={outcome.breakdown.distributions.effectiveHitDice}
+                decimalPlaces={decimalPlaces}
+                showFractions={showFractions}
+              />
+              <DistributionDetails
+                title="Bypass Dice Distribution"
+                valueLabel="Bypass Dice"
+                entries={outcome.breakdown.distributions.bypassDice}
+                decimalPlaces={decimalPlaces}
+                showFractions={showFractions}
+              />
+              <DistributionDetails
+                title="Final Failed Armour Dice Distribution"
+                valueLabel="Final Failed Armour Dice"
+                entries={outcome.breakdown.distributions.finalFailedArmourDice}
+                decimalPlaces={decimalPlaces}
+                showFractions={showFractions}
+              />
+              <DistributionDetails
+                title="Damage Pool Dice Distribution"
+                valueLabel="Damage Pool Dice"
+                entries={outcome.breakdown.distributions.damagePoolDice}
+                decimalPlaces={decimalPlaces}
+                showFractions={showFractions}
+              />
+              <DistributionDetails
+                title="Health-Inflicting Dice Distribution"
+                valueLabel="Health-Inflicting Dice"
+                entries={outcome.breakdown.distributions.healthInflictedDice}
+                decimalPlaces={decimalPlaces}
+                showFractions={showFractions}
+              />
+              <DistributionDetails
+                testId="total-damage-distribution"
+                title="Total Damage Distribution"
+                valueLabel="Total Damage"
+                entries={outcome.pmf}
+                decimalPlaces={decimalPlaces}
+                showFractions={showFractions}
+              />
+            </div>
           </section>
         </>
       )}

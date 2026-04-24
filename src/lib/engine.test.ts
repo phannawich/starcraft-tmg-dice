@@ -133,6 +133,52 @@ describe("calculateAttackOutcome", () => {
     expect(toughened.expectedTotalDamage).toBeLessThan(baseline.expectedTotalDamage);
   });
 
+  it("returns exact hit rates and damage probabilities for precision + critical scenario", () => {
+    const outcome = calculateAttackOutcome(
+      getValidInput({
+        modelCount: "1",
+        rateOfAttack: "2",
+        hitTarget: "2",
+        damagePerDie: "3",
+        armourTarget: "4",
+        evadeEnabled: false,
+        surgeEnabled: false,
+        surgeFormula: "not-used",
+        precisionX: "1",
+        critX: "1",
+        toughX: "0",
+        dodgeX: "0",
+        hitsX: "0",
+        hitsY: "1",
+      }),
+    );
+    const breakdown = outcome.breakdown;
+    const totalDamageProbabilities = Object.fromEntries(
+      outcome.pmf.map((entry) => [entry.value, entry.probability]),
+    );
+    const rawHitProbabilities = Object.fromEntries(
+      breakdown.distributions.rawHitDice.map((entry) => [entry.value, entry.probability]),
+    );
+    const effectiveHitProbabilities = Object.fromEntries(
+      breakdown.distributions.effectiveHitDice.map((entry) => [entry.value, entry.probability]),
+    );
+
+    expect(breakdown.rates.rawHitRate).toBeCloseTo(5 / 6, 10);
+    expect(breakdown.rates.rawMissRate).toBeCloseTo(1 / 6, 10);
+    expect(breakdown.rates.effectiveHitRate).toBeCloseTo(71 / 72, 10);
+    expect(breakdown.rates.effectiveMissRate).toBeCloseTo(1 / 72, 10);
+
+    expect(rawHitProbabilities[0]).toBeCloseTo(1 / 36, 10);
+    expect(rawHitProbabilities[1]).toBeCloseTo(10 / 36, 10);
+    expect(rawHitProbabilities[2]).toBeCloseTo(25 / 36, 10);
+    expect(effectiveHitProbabilities[1]).toBeCloseTo(1 / 36, 10);
+    expect(effectiveHitProbabilities[2]).toBeCloseTo(35 / 36, 10);
+
+    expect(totalDamageProbabilities[3]).toBeCloseTo(37 / 72, 10);
+    expect(totalDamageProbabilities[6]).toBeCloseTo(35 / 72, 10);
+    expect(outcome.expectedTotalDamage).toBeCloseTo((3 * 37 + 6 * 35) / 72, 10);
+  });
+
   it("throws on non-finite trial counts", () => {
     const invalidInput = {
       ...getValidInput(),

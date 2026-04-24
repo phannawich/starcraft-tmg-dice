@@ -26,6 +26,9 @@ This document summarizes the attack-flow model used by the calculator.
    - Generate attack dice from models and RoA.
    - Apply Hit threshold (`2+` to `6+`).
    - Apply `PRECISION (X)` by moving up to `X` failed Attack Dice into Armour Pool as successes.
+   - The UI reports both:
+     - raw Hit/Miss percentages from the threshold roll
+     - effective Hit/Miss percentages after Precision promotion
    - Hit successes (including Precision-moved dice) enter Armour Pool.
 
 2. **Resolve Surge + Critical Bypass**
@@ -53,6 +56,14 @@ This document summarizes the attack-flow model used by the calculator.
    - Base attack-path dice use `Damage` per die.
    - `HITS X (Y)` attack-path dice use `Y` per die.
    - PMF and expected values are computed exactly.
+   - The UI also exposes expandable distributions for each stage:
+     - raw hit dice
+     - effective hit dice
+     - bypass dice
+     - final failed armour dice
+     - damage pool dice
+     - health-inflicting dice
+     - total damage
 
 ## Special Inputs Modeled
 

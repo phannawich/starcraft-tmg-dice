@@ -55,6 +55,25 @@ function convolvePmfMaps(
   return output;
 }
 
+function normalizeDistribution(dist: DistributionEntry[]): DistributionEntry[] {
+  const total = dist.reduce((sum, entry) => sum + entry.probability, 0);
+  if (total <= 0 || Math.abs(total - 1) <= 1e-10) {
+    return dist;
+  }
+
+  return dist.map((entry) => ({
+    value: entry.value,
+    probability: entry.probability / total,
+  }));
+}
+
+function safeRate(value: number, total: number): number {
+  if (total <= 0) {
+    return 0;
+  }
+  return value / total;
+}
+
 export function calculateAttackOutcome(input: AttackInput): AttackOutcome {
   const attackDice = input.modelCount * input.rateOfAttack;
   const hitProb = successProbability(input.hitTarget);
@@ -67,28 +86,48 @@ export function calculateAttackOutcome(input: AttackInput): AttackOutcome {
     ? evaluateDiceDistribution(input.surgeFormula)
     : [{ value: 0, probability: 1 }];
 
+  const rawHitPmfMap = new Map<number, number>();
+  const effectiveHitPmfMap = new Map<number, number>();
+  const bypassPmfMap = new Map<number, number>();
+  const regularFinalFailedArmourPmfMap = new Map<number, number>();
+  const hitsFinalFailedArmourPmfMap = new Map<number, number>();
+  const regularDamagePoolPmfMap = new Map<number, number>();
+  const hitsDamagePoolPmfMap = new Map<number, number>();
+  const regularHealthInflictedPmfMap = new Map<number, number>();
+  const hitsHealthInflictedPmfMap = new Map<number, number>();
   const regularDamagePmfMap = new Map<number, number>();
   const hitsDamagePmfMap = new Map<number, number>();
   const binomialCache = new Map<string, DistributionEntry[]>();
 
+  let expectedRawHitDice = 0;
+  let expectedPrecisionPromotedDice = 0;
   let expectedHitSuccesses = 0;
+  let expectedPreDodgeBypassDice = 0;
   let expectedBypassDice = 0;
+  let expectedRawArmourFailedDice = 0;
   let expectedFailedArmourDice = 0;
   let expectedDamagePoolDice = 0;
   let expectedHealthInflictedDice = 0;
 
   for (const hit of hitDist) {
+    addProbability(rawHitPmfMap, hit.value, hit.probability);
+    expectedRawHitDice += hit.value * hit.probability;
+
     const misses = attackDice - hit.value;
     const precisionHits = Math.min(input.precisionX, misses);
     const effectiveHits = hit.value + precisionHits;
+    expectedPrecisionPromotedDice += precisionHits * hit.probability;
     expectedHitSuccesses += effectiveHits * hit.probability;
+    addProbability(effectiveHitPmfMap, effectiveHits, hit.probability);
 
     for (const surge of surgeDist) {
       const jointHitSurgeProb = hit.probability * surge.probability;
       const rawBypass = Math.min(effectiveHits, Math.max(0, surge.value + input.critX));
       const bypass = Math.max(0, rawBypass - input.dodgeX);
+      expectedPreDodgeBypassDice += rawBypass * jointHitSurgeProb;
       const armourPool = effectiveHits - bypass;
       expectedBypassDice += bypass * jointHitSurgeProb;
+      addProbability(bypassPmfMap, bypass, jointHitSurgeProb);
 
       const armourKey = cacheKey(armourPool, armourFailProb);
       const armourFailDist =
@@ -97,11 +136,14 @@ export function calculateAttackOutcome(input: AttackInput): AttackOutcome {
 
       for (const armourFail of armourFailDist) {
         const jointArmourProb = jointHitSurgeProb * armourFail.probability;
+        expectedRawArmourFailedDice += armourFail.value * jointArmourProb;
         const adjustedArmourFail = applyTough(armourFail.value, input.toughX);
         expectedFailedArmourDice += adjustedArmourFail * jointArmourProb;
+        addProbability(regularFinalFailedArmourPmfMap, adjustedArmourFail, jointArmourProb);
 
         const damagePoolDice = bypass + adjustedArmourFail;
         expectedDamagePoolDice += damagePoolDice * jointArmourProb;
+        addProbability(regularDamagePoolPmfMap, damagePoolDice, jointArmourProb);
         const evadeKey = cacheKey(damagePoolDice, evadeFailProb);
         const postEvadeDist =
           binomialCache.get(evadeKey) ??
@@ -111,6 +153,7 @@ export function calculateAttackOutcome(input: AttackInput): AttackOutcome {
         for (const postEvade of postEvadeDist) {
           const finalProb = jointArmourProb * postEvade.probability;
           expectedHealthInflictedDice += postEvade.value * finalProb;
+          addProbability(regularHealthInflictedPmfMap, postEvade.value, finalProb);
 
           const totalDamage = postEvade.value * input.damagePerDie;
           addProbability(regularDamagePmfMap, totalDamage, finalProb);
@@ -128,9 +171,12 @@ export function calculateAttackOutcome(input: AttackInput): AttackOutcome {
 
     for (const armourFail of hitsArmourFailDist) {
       const armourProb = armourFail.probability;
+      expectedRawArmourFailedDice += armourFail.value * armourProb;
       const adjustedArmourFail = applyTough(armourFail.value, input.toughX);
       expectedFailedArmourDice += adjustedArmourFail * armourProb;
+      addProbability(hitsFinalFailedArmourPmfMap, adjustedArmourFail, armourProb);
       expectedDamagePoolDice += adjustedArmourFail * armourProb;
+      addProbability(hitsDamagePoolPmfMap, adjustedArmourFail, armourProb);
 
       const evadeKey = cacheKey(adjustedArmourFail, evadeFailProb);
       const postEvadeDist =
@@ -141,15 +187,28 @@ export function calculateAttackOutcome(input: AttackInput): AttackOutcome {
       for (const postEvade of postEvadeDist) {
         const finalProb = armourProb * postEvade.probability;
         expectedHealthInflictedDice += postEvade.value * finalProb;
+        addProbability(hitsHealthInflictedPmfMap, postEvade.value, finalProb);
 
         const totalDamage = postEvade.value * input.hitsY;
         addProbability(hitsDamagePmfMap, totalDamage, finalProb);
       }
     }
   } else {
+    hitsFinalFailedArmourPmfMap.set(0, 1);
+    hitsDamagePoolPmfMap.set(0, 1);
+    hitsHealthInflictedPmfMap.set(0, 1);
     hitsDamagePmfMap.set(0, 1);
   }
 
+  const finalFailedArmourPmfMap = convolvePmfMaps(
+    regularFinalFailedArmourPmfMap,
+    hitsFinalFailedArmourPmfMap,
+  );
+  const damagePoolPmfMap = convolvePmfMaps(regularDamagePoolPmfMap, hitsDamagePoolPmfMap);
+  const healthInflictedPmfMap = convolvePmfMaps(
+    regularHealthInflictedPmfMap,
+    hitsHealthInflictedPmfMap,
+  );
   const pmfMap = convolvePmfMaps(regularDamagePmfMap, hitsDamagePmfMap);
   let pmf = mapToSortedDistribution(pmfMap);
   const totalProb = pmf.reduce((acc, item) => acc + item.probability, 0);
@@ -161,17 +220,77 @@ export function calculateAttackOutcome(input: AttackInput): AttackOutcome {
       probability: item.probability * normalizationFactor,
     }));
 
+    expectedRawHitDice *= normalizationFactor;
+    expectedPrecisionPromotedDice *= normalizationFactor;
     expectedHitSuccesses *= normalizationFactor;
+    expectedPreDodgeBypassDice *= normalizationFactor;
     expectedBypassDice *= normalizationFactor;
+    expectedRawArmourFailedDice *= normalizationFactor;
     expectedFailedArmourDice *= normalizationFactor;
     expectedDamagePoolDice *= normalizationFactor;
     expectedHealthInflictedDice *= normalizationFactor;
   }
 
+  const rawMissDice = Math.max(0, attackDice - expectedRawHitDice);
+  const effectiveMissDice = Math.max(0, attackDice - expectedHitSuccesses);
+  const armourDiceRolled = Math.max(
+    0,
+    expectedHitSuccesses - expectedBypassDice + input.hitsX,
+  );
+  const armourSavedDice = Math.max(0, armourDiceRolled - expectedRawArmourFailedDice);
+  const toughMitigatedDice = Math.max(0, expectedRawArmourFailedDice - expectedFailedArmourDice);
+  const evadedDice = input.evadeEnabled
+    ? Math.max(0, expectedDamagePoolDice - expectedHealthInflictedDice)
+    : 0;
+
   const expectedTotalDamage = pmf.reduce(
     (acc, item) => acc + item.value * item.probability,
     0,
   );
+
+  const breakdown = {
+    expected: {
+      attackDice,
+      rawHitDice: expectedRawHitDice,
+      rawMissDice,
+      precisionPromotedDice: expectedPrecisionPromotedDice,
+      effectiveHitDice: expectedHitSuccesses,
+      effectiveMissDice,
+      preDodgeBypassDice: expectedPreDodgeBypassDice,
+      bypassDice: expectedBypassDice,
+      armourDiceRolled,
+      armourSavedDice,
+      rawArmourFailedDice: expectedRawArmourFailedDice,
+      toughMitigatedDice,
+      finalFailedArmourDice: expectedFailedArmourDice,
+      damagePoolDice: expectedDamagePoolDice,
+      evadedDice,
+      healthInflictedDice: expectedHealthInflictedDice,
+    },
+    rates: {
+      rawHitRate: safeRate(expectedRawHitDice, attackDice),
+      rawMissRate: safeRate(rawMissDice, attackDice),
+      effectiveHitRate: safeRate(expectedHitSuccesses, attackDice),
+      effectiveMissRate: safeRate(effectiveMissDice, attackDice),
+      bypassOfEffectiveHitsRate: safeRate(expectedBypassDice, expectedHitSuccesses),
+      armourSaveRate: safeRate(armourSavedDice, armourDiceRolled),
+      armourFailRate: safeRate(expectedRawArmourFailedDice, armourDiceRolled),
+      evadeRate: input.evadeEnabled ? safeRate(evadedDice, expectedDamagePoolDice) : 0,
+      damageConversionRate: safeRate(expectedHealthInflictedDice, expectedDamagePoolDice),
+    },
+    distributions: {
+      rawHitDice: normalizeDistribution(mapToSortedDistribution(rawHitPmfMap)),
+      effectiveHitDice: normalizeDistribution(mapToSortedDistribution(effectiveHitPmfMap)),
+      bypassDice: normalizeDistribution(mapToSortedDistribution(bypassPmfMap)),
+      finalFailedArmourDice: normalizeDistribution(
+        mapToSortedDistribution(finalFailedArmourPmfMap),
+      ),
+      damagePoolDice: normalizeDistribution(mapToSortedDistribution(damagePoolPmfMap)),
+      healthInflictedDice: normalizeDistribution(
+        mapToSortedDistribution(healthInflictedPmfMap),
+      ),
+    },
+  };
 
   return {
     pmf,
@@ -181,5 +300,6 @@ export function calculateAttackOutcome(input: AttackInput): AttackOutcome {
     expectedFailedArmourDice,
     expectedDamagePoolDice,
     expectedHealthInflictedDice,
+    breakdown,
   };
 }
