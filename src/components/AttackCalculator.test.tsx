@@ -69,6 +69,8 @@ describe("AttackCalculator", () => {
     const totalDamageDetails = screen.getByTestId("total-damage-distribution");
     expect(within(totalDamageDetails).getByRole("columnheader", { name: /total damage/i })).toBeInTheDocument();
     expect(within(totalDamageDetails).getByRole("columnheader", { name: /probability/i })).toBeInTheDocument();
+    const pmfTable = screen.getByTestId("pmf-total-damage-table");
+    expect(within(pmfTable).queryByRole("columnheader", { name: /fraction/i })).not.toBeInTheDocument();
 
     // Enable fractions via settings
     const settingsButton = screen.getByRole("button", { name: /display settings/i });
@@ -77,6 +79,7 @@ describe("AttackCalculator", () => {
     await user.click(fractionCheckbox);
 
     expect(within(totalDamageDetails).getByRole("columnheader", { name: /fraction/i })).toBeInTheDocument();
+    expect(within(pmfTable).getByRole("columnheader", { name: /fraction/i })).toBeInTheDocument();
   });
 
   it("uses decimal display setting with default 2 and allows changing to 0-6", async () => {

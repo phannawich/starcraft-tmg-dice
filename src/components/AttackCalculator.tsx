@@ -988,11 +988,13 @@ export default function AttackCalculator(): ReactElement {
 
           <section className="panel" style={{ padding: "0.9rem", overflowX: "auto" }}>
             <h2 style={{ margin: "0 0 0.6rem", fontSize: "1rem" }}>Probability Mass Function (Total Damage)</h2>
-            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 240 }}>
+            <table data-testid="pmf-total-damage-table" style={{ width: "100%", borderCollapse: "collapse", minWidth: 240 }}>
               <thead>
                 <tr>
                   <th style={{ textAlign: "left", padding: "0.45rem", borderBottom: "1px solid var(--line)" }}>Total Damage</th>
-                  <th style={{ textAlign: "left", padding: "0.45rem", width: "7.5rem", whiteSpace: "nowrap", borderBottom: "1px solid var(--line)" }}>Fraction</th>
+                  {showFractions && (
+                    <th style={{ textAlign: "left", padding: "0.45rem", width: "7.5rem", whiteSpace: "nowrap", borderBottom: "1px solid var(--line)" }}>Fraction</th>
+                  )}
                   <th style={{ textAlign: "right", padding: "0.45rem", borderBottom: "1px solid var(--line)" }}>Probability</th>
                 </tr>
               </thead>
@@ -1000,9 +1002,11 @@ export default function AttackCalculator(): ReactElement {
                 {outcome.pmf.map((entry) => (
                   <tr key={entry.value}>
                     <td style={{ padding: "0.4rem 0.45rem", borderBottom: "1px solid var(--line)" }}>{entry.value}</td>
-                    <td style={{ padding: "0.4rem 0.45rem", textAlign: "left", width: "7.5rem", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums", borderBottom: "1px solid var(--line)" }}>
-                      {toProbabilityFraction(entry.probability, pmfFractionDenominator)}
-                    </td>
+                    {showFractions && (
+                      <td style={{ padding: "0.4rem 0.45rem", textAlign: "left", width: "7.5rem", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums", borderBottom: "1px solid var(--line)" }}>
+                        {toProbabilityFraction(entry.probability, pmfFractionDenominator)}
+                      </td>
+                    )}
                     <td style={{ padding: "0.4rem 0.45rem", textAlign: "right", borderBottom: "1px solid var(--line)" }}>
                       {formatPercent(entry.probability)}
                     </td>
