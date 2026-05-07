@@ -1,9 +1,71 @@
 ---
 import MainLayout from "@/layouts/MainLayout.astro";
 import AttackCalculator from "@/components/AttackCalculator";
+
+const pageTitle = "StarCraft TMG Dice Calculator: Attack Outcome Probabilities";
+const pageDescription =
+  "Calculate StarCraft TMG attack outcomes with exact probabilities. See hit, bypass, armour, evade, and total damage distributions with interactive charts.";
+const pageCanonicalUrl = "https://phannawich.github.io/starcraft-tmg-dice/";
+const pageOgImage = "/og-card.svg";
+const noIndex = import.meta.env.RENDER === "true";
+const structuredData = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "StarCraft TMG Dice Calculator",
+    description: pageDescription,
+    url: pageCanonicalUrl,
+    applicationCategory: "GameApplication",
+    operatingSystem: "Any",
+    browserRequirements: "Requires JavaScript and a modern web browser",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: "What is the StarCraft TMG Dice Calculator?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "The StarCraft TMG Dice Calculator is a browser-based probability tool that computes exact attack outcomes without simulation sampling. It models hit rolls, Precision, Surge, Critical bypass, Armour, Tough, Dodge, and optional Evade.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "How does this calculator work?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "It builds the attack pool from model count and rate of attack, resolves hit and bypass interactions, then resolves Armour and optional Evade to produce total damage probabilities and expected values.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Is this calculator deterministic or simulated?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "It is deterministic. The calculator computes exact probability mass functions and expected values instead of Monte Carlo random sampling.",
+        },
+      },
+    ],
+  },
+];
 ---
 
-<MainLayout>
+<MainLayout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalUrl={pageCanonicalUrl}
+  ogImage={pageOgImage}
+  ogImageAlt="StarCraft TMG attack calculator preview with probability charts"
+  noIndex={noIndex}
+  structuredData={structuredData}
+>
   <header style="margin-bottom: 1.2rem;">
     <h1
       style="margin: 0; font-size: clamp(1.65rem, 3.8vw, 2.75rem); line-height: 1.04; color: var(--ink); letter-spacing: 0.012em;"
@@ -11,9 +73,63 @@ import AttackCalculator from "@/components/AttackCalculator";
       StarCraft TMG Visual Dice Calculator
     </h1>
     <p style="margin: 0.5rem 0 0; max-width: 56ch; color: var(--ink-soft);">
-      Statistical analysis tool for StarCraft TMG
+      How much damage should your next attack deal before dice hit the table? The StarCraft TMG Dice Calculator gives exact probabilities with deterministic math and interactive charts.
+    </p>
+    <p style="margin: 0.5rem 0 0; max-width: 62ch; color: var(--ink-soft);">
+      Quick example: <code class="mono">Model=2, RoA=4, Hit=3+, Armour=4+, Damage=2</code>. For method details, open <a href="#calculator-method">How this calculator works</a> below.
     </p>
   </header>
 
   <AttackCalculator client:load />
+
+  <details id="calculator-method" class="panel seo-details">
+    <summary>How this calculator works</summary>
+    <div class="seo-details-content">
+      <p>
+        In this section: <a href="#what-is-this-calculator">definition</a>, <a href="#what-youll-learn">what you&apos;ll learn</a>, <a href="#how-does-this-work">resolution flow</a>, and <a href="#quick-example-input">example input</a>.
+      </p>
+      <h2 id="what-is-this-calculator">What is the StarCraft TMG Dice Calculator?</h2>
+      <p>
+        The <strong>StarCraft TMG Dice Calculator</strong> is a browser-based probability tool that computes exact attack outcomes without simulation sampling. It models hit rolls, Precision, Surge, Critical bypass, Armour, Tough, Dodge, and optional Evade so you can compare expected damage and full probability distributions before committing to tabletop decisions.
+      </p>
+      <h2 id="what-youll-learn">What you&apos;ll learn from the result panel</h2>
+      <ul style="padding-left: 1.2rem; display: grid; gap: 0.26rem;">
+        <li>Expected total damage and exact probability mass function.</li>
+        <li>How many dice survive each stage from <strong>Attack Pool</strong> to <strong>Health Inflict</strong>.</li>
+        <li>How Precision, Surge, Critical, Tough, Dodge, and Evade change outcomes.</li>
+        <li>When a profile is stable versus high-variance for planning activations.</li>
+      </ul>
+      <h2 id="how-does-this-work">How does this calculator work?</h2>
+      <ol style="padding-left: 1.2rem; display: grid; gap: 0.28rem;">
+        <li>Build the attack pool from model count and rate of attack.</li>
+        <li>Resolve hit effects (including Precision), then bypass effects (Surge and Critical with Dodge reduction).</li>
+        <li>Resolve Armour and Tough, then convert surviving dice into total damage and PMF chart output.</li>
+      </ol>
+      <h2 id="quick-example-input">Quick example input</h2>
+      <pre class="mono" style="padding: 0.62rem 0.7rem; border: 1px solid var(--line); border-radius: 10px; background: color-mix(in srgb, var(--bg-input) 92%, #0b1018 8%);"><code>Model=2, RoA=4, Hit=3+, Damage=2, Armour=4+, Precision=1, Crit=1</code></pre>
+      <h2>Calculator output vs table intuition</h2>
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th style="text-align: left; padding: 0.45rem 0.5rem; border: 1px solid var(--line);">Approach</th>
+            <th style="text-align: left; padding: 0.45rem 0.5rem; border: 1px solid var(--line);">Result quality</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding: 0.45rem 0.5rem; border: 1px solid var(--line);">Quick intuition</td>
+            <td style="padding: 0.45rem 0.5rem; border: 1px solid var(--line);">Fast but noisy estimate</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.45rem 0.5rem; border: 1px solid var(--line);">This calculator</td>
+            <td style="padding: 0.45rem 0.5rem; border: 1px solid var(--line);">Exact PMF + expected value</td>
+          </tr>
+        </tbody>
+      </table>
+      <h2>Why this helps tabletop decisions</h2>
+      <p>
+        Because outcomes are deterministic and not sampled, you can compare weapons, buffs, and target profiles using exact math before committing to movement, target priority, and risk trade-offs in play.
+      </p>
+    </div>
+  </details>
 </MainLayout>

@@ -96,6 +96,21 @@ Both deployments use **environment-aware Astro configuration**:
 - GitHub Pages deployment uses base path `/starcraft-tmg-dice`
 - Render deployment uses base path `/`
 
+## SEO Notes
+
+- Canonical production URL is set to **GitHub Pages** (`https://phannawich.github.io/starcraft-tmg-dice/`).
+- Shared metadata is defined in `src/layouts/MainLayout.astro`:
+  - meta description
+  - canonical link
+  - Open Graph tags
+  - Twitter card tags
+- Social preview image is served from `public/og-card.svg` and wired via Open Graph/Twitter image tags.
+- Homepage structured data (JSON-LD `WebApplication`) is defined in `src/pages/index.astro`.
+- Homepage FAQ structured data is also included for rich-search interpretation.
+- Render deployments are marked `noindex, nofollow` while keeping GitHub Pages as canonical.
+- Sitemap generation is enabled via `@astrojs/sitemap` for the canonical GitHub Pages build (not Render dev builds).
+- `public/robots.txt` publishes crawler policy and sitemap location.
+
 ## Documentation Files
 
 - `design.md`: current dark-mode design decisions and UI token notes.

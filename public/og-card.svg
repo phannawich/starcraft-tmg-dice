@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">StarCraft TMG Dice Calculator</title>
+  <desc id="desc">Exact probability calculator for StarCraft TMG attack outcomes.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#121722" />
+      <stop offset="100%" stop-color="#0c1015" />
+    </linearGradient>
+    <radialGradient id="glowA" cx="86%" cy="8%" r="65%">
+      <stop offset="0%" stop-color="#5bb4ff" stop-opacity="0.32" />
+      <stop offset="100%" stop-color="#5bb4ff" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="glowB" cx="10%" cy="92%" r="58%">
+      <stop offset="0%" stop-color="#39c49a" stop-opacity="0.28" />
+      <stop offset="100%" stop-color="#39c49a" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <rect width="1200" height="630" fill="url(#glowA)" />
+  <rect width="1200" height="630" fill="url(#glowB)" />
+
+  <g transform="translate(84 96)">
+    <rect x="0" y="0" width="1032" height="438" rx="24" fill="#151a22" stroke="#2b3648" stroke-width="2" />
+    <text x="48" y="94" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="54" font-weight="700" fill="#e7ecf5">
+      StarCraft TMG Dice Calculator
+    </text>
+    <text x="48" y="154" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="29" fill="#a6b2c7">
+      Exact attack outcome probabilities • No simulation sampling
+    </text>
+
+    <g transform="translate(48 220)">
+      <rect x="0" y="0" width="296" height="150" rx="16" fill="#101620" stroke="#2b3648" />
+      <text x="22" y="36" font-family="IBM Plex Mono, Consolas, monospace" font-size="20" fill="#e7ecf5">Model: 2</text>
+      <text x="22" y="68" font-family="IBM Plex Mono, Consolas, monospace" font-size="20" fill="#e7ecf5">RoA: 4</text>
+      <text x="22" y="100" font-family="IBM Plex Mono, Consolas, monospace" font-size="20" fill="#e7ecf5">Hit: 3+</text>
+      <text x="22" y="132" font-family="IBM Plex Mono, Consolas, monospace" font-size="20" fill="#e7ecf5">Armour: 4+</text>
+    </g>
+
+    <g transform="translate(386 220)">
+      <rect x="0" y="0" width="598" height="150" rx="16" fill="#101620" stroke="#2b3648" />
+      <polyline points="26,116 126,82 226,98 326,52 426,70 526,36"
+        fill="none" stroke="#5bb4ff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+      <circle cx="526" cy="36" r="10" fill="#39c49a" />
+      <text x="24" y="38" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="22" fill="#e7ecf5">
+        PMF by Total Damage
+      </text>
+    </g>
+  </g>
+</svg>
